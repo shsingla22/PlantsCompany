@@ -17,3 +17,16 @@ and used under their respective free licenses. Images were resized for the web.
 | `string-of-pearls.jpg` | *Curio rowleyanus* | [Senecio_rowleyanus_leaves.jpg](https://commons.wikimedia.org/wiki/File:Senecio_rowleyanus_leaves.jpg) | Flickr user Forest and Kim Starr | CC BY 2.0 |
 | `echeveria.jpg` | *Echeveria elegans* | [Echeveria_elegans_-_1.png](https://commons.wikimedia.org/wiki/File:Echeveria_elegans_-_1.png) | EriaWei | CC BY-SA 4.0 |
 | `peperomia.jpg` | *Peperomia obtusifolia* | [Peperomia_obtusifolia_3-OB9.jpg](https://commons.wikimedia.org/wiki/File:Peperomia_obtusifolia_3-OB9.jpg) | Jerzy Opioła | CC BY-SA 4.0 |
+
+## Plantscape Studio example spaces (`assets/img/rooms/`)
+
+| Image | Source file | Author | License |
+| --- | --- | --- | --- |
+| `living-room.jpg` | [Modern living room with stylish furniture...](https://commons.wikimedia.org/wiki/File:Modern_living_room_with_stylish_furniture_and_a_view_of_the_outdoors_in_a_cozy_apartment_setting.jpg) | Shixart1985 | CC BY 2.0 |
+| `bedroom.jpg` | [Balanced Modern Bedroom Design...](https://commons.wikimedia.org/wiki/File:Balanced_Modern_Bedroom_Design_with_Neutral_Tones_and_Layered_Lighting.jpg) | SPL Interiors | CC BY 4.0 |
+| `empty-room.jpg` | [Empty apartment room with corner windows](https://commons.wikimedia.org/wiki/File:Empty_apartment_room_with_corner_windows.jpg) | aismallard | CC BY-SA 3.0 |
+| `deck.jpg` | [A raised decking with furniture, Theydon Bois...](https://commons.wikimedia.org/wiki/File:A_raised_decking_with_furniture,_Theydon_Bois,_Essex,_England.JPG) | Acabashi | CC BY-SA 4.0 |
+
+The `*-after.jpg` images are derivatives of the above, composited with this
+project's own plant illustrations. Plant sticker artwork (`assets/stickers/`)
+is original to this project.

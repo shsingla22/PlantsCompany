@@ -14,6 +14,10 @@ home plant care systems (watering, light, and soil sensing).
 - **Live care dashboard** — drag moisture / light / humidity sliders and watch
   the plant-happiness gauge and advice respond in real time.
 - **Watering calculator** — plant type × pot size × season → ml and cadence.
+- **Plantscape Studio** — upload a photo of your room or yard (or pick an
+  example), tap Beautify for an instant plant-styled version, drag plants
+  around, compare before/after with a slider, and download the result.
+  Runs entirely in the browser — photos never leave the device.
 - **Delight everywhere** — dark/light theme with saved preference, 3D-tilt
   cards with cursor glow, scroll-reveal animations, testimonial carousel,
   marquee, and a mobile burger nav. Honors `prefers-reduced-motion`.

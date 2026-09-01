@@ -28,6 +28,7 @@
       <a href="#finder">Plant Finder</a>
       <a href="#catalog">Catalog</a>
       <a href="#dashboard">Live Care</a>
+      <a href="#studio">Studio</a>
       <a href="#calculator">Calculator</a>
     </nav>
     <div class="nav__actions">
@@ -308,8 +309,76 @@
       </div>
     </section>
 
+    <!-- ============ PLANTSCAPE STUDIO ============ -->
+    <section class="section section--tinted" id="studio">
+      <div class="section__head reveal">
+        <p class="eyebrow"><span class="eyebrow__dot"></span> Plantscape Studio</p>
+        <h2>See your space,<br /><em>beautified with plants.</em></h2>
+        <p class="section__sub">
+          Upload a photo of any room, balcony, or backyard — or pick an example — then tap
+          <strong>Beautify</strong> to see it styled with plants. Drag to rearrange, slide to compare
+          before &amp; after, and download the result. Photos never leave your device.
+        </p>
+      </div>
+
+      <div class="studio reveal">
+        <!-- upload state -->
+        <div class="studio__upload" id="studioUpload">
+          <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload a photo of your space">
+            <span class="dropzone__icon">🖼️</span>
+            <strong>Drop a photo here</strong>
+            <span>or click to browse — your image stays in your browser</span>
+            <input type="file" id="fileInput" accept="image/*" hidden />
+          </div>
+          <p class="studio__or">…or start from an example space</p>
+          <div class="studio__examples" id="exampleThumbs"></div>
+        </div>
+
+        <!-- workspace state -->
+        <div class="studio__work" id="studioWork" hidden>
+          <div class="studio__toolbar">
+            <button class="btn btn--primary" id="beautifyBtn">✨ Beautify</button>
+            <button class="btn btn--ghost" id="clearBtn">↺ Clear plants</button>
+            <button class="btn btn--ghost" id="downloadBtn">⬇ Download</button>
+            <button class="btn btn--ghost" id="newPhotoBtn">🖼 New photo</button>
+            <span class="studio__hint">Tap a plant below to add it · drag to move · scroll or drag the corner dot to resize</span>
+          </div>
+
+          <div class="studio__stage" id="studioStage">
+            <canvas id="studioCanvas"></canvas>
+            <div class="studio__before" id="beforeLayer" aria-hidden="true">
+              <img id="beforeImg" alt="" />
+              <span class="studio__divider"></span>
+            </div>
+            <span class="studio__tag studio__tag--before">Before</span>
+            <span class="studio__tag studio__tag--after">After</span>
+          </div>
+          <label class="studio__compare">
+            <span>Compare</span>
+            <input type="range" id="compareRange" min="0" max="100" value="0" />
+          </label>
+
+          <div class="studio__selbar" id="selBar" hidden>
+            <span>Selected plant:</span>
+            <button id="selBigger" title="Bigger">＋</button>
+            <button id="selSmaller" title="Smaller">－</button>
+            <button id="selFlip" title="Flip">⇋</button>
+            <button id="selDelete" title="Remove">🗑</button>
+          </div>
+
+          <div class="studio__palette" id="stickerPalette" aria-label="Plant palette"></div>
+        </div>
+
+        <!-- before/after example gallery -->
+        <div class="studio__gallery">
+          <h3 class="studio__gallery-title">Before &amp; after — hover or tap to peek at the original</h3>
+          <div class="ba-grid" id="baGrid"></div>
+        </div>
+      </div>
+    </section>
+
     <!-- ============ TESTIMONIALS ============ -->
-    <section class="section section--tinted" id="voices">
+    <section class="section" id="voices">
       <div class="section__head reveal">
         <p class="eyebrow"><span class="eyebrow__dot"></span> Kind words</p>
         <h2>From homes that <em>went green.</em></h2>

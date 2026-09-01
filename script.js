@@ -354,6 +354,367 @@
   );
   autoAdvance();
 
+  /* ---------- plantscape studio ---------- */
+  const STICKERS = [
+    { id: "monstera", label: "Monstera", kind: "floor", scale: 0.42 },
+    { id: "rubber-plant", label: "Rubber plant", kind: "floor", scale: 0.44 },
+    { id: "bird-of-paradise", label: "Bird of paradise", kind: "floor", scale: 0.5 },
+    { id: "palm", label: "Areca palm", kind: "floor", scale: 0.48 },
+    { id: "snake-plant", label: "Snake plant", kind: "floor", scale: 0.3 },
+    { id: "olive-tree", label: "Olive tree", kind: "floor", scale: 0.55 },
+    { id: "fern-hanging", label: "Hanging fern", kind: "hang", scale: 0.28 },
+    { id: "pothos-hanging", label: "Hanging pothos", kind: "hang", scale: 0.3 },
+    { id: "cactus-trio", label: "Desert trio", kind: "accent", scale: 0.14 },
+  ];
+  const stickerById = {};
+  STICKERS.forEach((s) => {
+    s.src = `assets/stickers/${s.id}.svg`;
+    s.img = new Image();
+    s.img.src = s.src;
+    stickerById[s.id] = s;
+  });
+
+  // Example spaces: preset = normalized placements {id, x (center/W), y (center/H), h (height/H), flip}
+  const EXAMPLES = [
+    {
+      id: "living-room", title: "Cozy living room", blurb: "A bird of paradise by the window, trailing pothos above the shelf.",
+      img: "assets/img/rooms/living-room.jpg",
+      preset: [
+        { id: "bird-of-paradise", x: 0.9, y: 0.72, h: 0.52 },
+        { id: "monstera", x: 0.3, y: 0.86, h: 0.3, flip: true },
+        { id: "pothos-hanging", x: 0.2, y: 0.16, h: 0.3 },
+        { id: "cactus-trio", x: 0.66, y: 0.9, h: 0.1 },
+      ],
+    },
+    {
+      id: "bedroom", title: "Calm bedroom", blurb: "Soft greens for slower mornings and cleaner air.",
+      img: "assets/img/rooms/bedroom.jpg",
+      preset: [
+        { id: "palm", x: 0.08, y: 0.74, h: 0.46 },
+        { id: "snake-plant", x: 0.9, y: 0.8, h: 0.26, flip: true },
+        { id: "fern-hanging", x: 0.82, y: 0.14, h: 0.26 },
+      ],
+    },
+    {
+      id: "empty-room", title: "Blank canvas", blurb: "An empty corner is just a jungle waiting to happen.",
+      img: "assets/img/rooms/empty-room.jpg",
+      preset: [
+        { id: "monstera", x: 0.12, y: 0.72, h: 0.48 },
+        { id: "rubber-plant", x: 0.86, y: 0.78, h: 0.38, flip: true },
+        { id: "pothos-hanging", x: 0.6, y: 0.15, h: 0.28 },
+        { id: "cactus-trio", x: 0.38, y: 0.9, h: 0.12 },
+      ],
+    },
+    {
+      id: "deck", title: "Backyard deck", blurb: "Olive trees and desert friends for outdoor evenings.",
+      img: "assets/img/rooms/deck.jpg",
+      preset: [
+        { id: "olive-tree", x: 0.88, y: 0.66, h: 0.52 },
+        { id: "palm", x: 0.08, y: 0.72, h: 0.44, flip: true },
+        { id: "cactus-trio", x: 0.4, y: 0.92, h: 0.12 },
+      ],
+    },
+  ];
+
+  const studioUpload = $("#studioUpload");
+  const studioWork = $("#studioWork");
+  const stage = $("#studioStage");
+  const canvas = $("#studioCanvas");
+  const ctx = canvas.getContext("2d");
+  const beforeLayer = $("#beforeLayer");
+  const beforeImg = $("#beforeImg");
+  const compareRange = $("#compareRange");
+  const selBar = $("#selBar");
+
+  let baseImg = null;
+  let placed = [];
+  let selected = -1;
+
+  const HANDLE = 14;
+
+  const bbox = (p) => {
+    const w = p.h * (p.s.img.naturalWidth / p.s.img.naturalHeight);
+    return { x: p.x - w / 2, y: p.y - p.h / 2, w, h: p.h };
+  };
+
+  const render = (showSel = true) => {
+    if (!baseImg) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
+    if (placed.length) {
+      // subtle warm-light grade so the plantscape feels sunlit
+      const g = ctx.createRadialGradient(
+        canvas.width * 0.5, canvas.height * 0.2, 0,
+        canvas.width * 0.5, canvas.height * 0.55, canvas.width * 0.75
+      );
+      g.addColorStop(0, "rgba(255, 236, 200, 0.10)");
+      g.addColorStop(1, "rgba(30, 60, 40, 0.06)");
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    for (const p of placed) {
+      const b = bbox(p);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      if (p.flip) ctx.scale(-1, 1);
+      ctx.drawImage(p.s.img, -b.w / 2, -b.h / 2, b.w, b.h);
+      ctx.restore();
+    }
+    if (showSel && selected >= 0 && placed[selected]) {
+      const b = bbox(placed[selected]);
+      ctx.save();
+      ctx.strokeStyle = "#3a7d52";
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([8, 6]);
+      ctx.strokeRect(b.x - 6, b.y - 6, b.w + 12, b.h + 12);
+      ctx.setLineDash([]);
+      ctx.fillStyle = "#3a7d52";
+      ctx.beginPath();
+      ctx.arc(b.x + b.w + 6, b.y + b.h + 6, HANDLE / 1.6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  };
+
+  const setSelected = (i) => {
+    selected = i;
+    selBar.hidden = i < 0;
+    render();
+  };
+
+  const loadBase = (src) => new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      baseImg = img;
+      const maxW = 1400;
+      const scale = Math.min(1, maxW / img.naturalWidth);
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
+      beforeImg.src = src;
+      placed = [];
+      setSelected(-1);
+      compareRange.value = 0;
+      updateCompare();
+      studioUpload.hidden = true;
+      studioWork.hidden = false;
+      render();
+      resolve();
+    };
+    img.src = src;
+  });
+
+  const addSticker = (s, opts = {}) => {
+    const h = (opts.h ?? s.scale) * canvas.height;
+    const w = h * (s.img.naturalWidth / s.img.naturalHeight);
+    let x, y;
+    if (opts.x != null) {
+      x = opts.x * canvas.width;
+      y = opts.y * canvas.height;
+    } else if (s.kind === "hang") {
+      x = canvas.width * (0.25 + Math.random() * 0.5);
+      y = h / 2 - canvas.height * 0.02;
+    } else {
+      x = canvas.width * (0.3 + Math.random() * 0.4);
+      y = canvas.height * 0.96 - h / 2;
+    }
+    // keep within frame horizontally
+    x = Math.max(w * 0.25, Math.min(canvas.width - w * 0.25, x));
+    placed.push({ s, x, y, h, flip: !!opts.flip });
+    setSelected(placed.length - 1);
+  };
+
+  const beautify = () => {
+    placed = [];
+    const side = Math.random() < 0.5 ? 1 : 0; // 1 = tall plant on right
+    const jitter = () => (Math.random() - 0.5) * 0.04;
+    const floors = STICKERS.filter((s) => s.kind === "floor");
+    const tall = floors[Math.floor(Math.random() * floors.length)];
+    let medium = floors[Math.floor(Math.random() * floors.length)];
+    if (medium === tall) medium = floors[(floors.indexOf(tall) + 2) % floors.length];
+    const hang = Math.random() < 0.5 ? stickerById["fern-hanging"] : stickerById["pothos-hanging"];
+
+    const tallH = 0.5;
+    addSticker(tall, { x: (side ? 0.9 : 0.1) + jitter(), y: 0.97 - tallH / 2, h: tallH, flip: !!side });
+    const medH = 0.32;
+    addSticker(medium, { x: (side ? 0.08 : 0.92) + jitter(), y: 0.97 - medH / 2, h: medH, flip: !side });
+    const hangH = 0.28;
+    addSticker(hang, { x: (side ? 0.16 : 0.84) + jitter(), y: hangH / 2 - 0.02, h: hangH });
+    if (canvas.width / canvas.height > 1.15) {
+      addSticker(stickerById["cactus-trio"], { x: 0.5 + jitter() * 3, y: 0.94, h: 0.11 });
+    }
+    setSelected(-1);
+  };
+
+  /* palette + example thumbs */
+  $("#stickerPalette").innerHTML = STICKERS.map(
+    (s) => `<button class="palette-item" data-id="${s.id}"><img src="${s.src}" alt="" />${s.label}</button>`
+  ).join("");
+  $("#stickerPalette").addEventListener("click", (e) => {
+    const btn = e.target.closest(".palette-item");
+    if (btn) addSticker(stickerById[btn.dataset.id]);
+  });
+
+  $("#exampleThumbs").innerHTML = EXAMPLES.map(
+    (ex, i) => `<button class="example-thumb" data-i="${i}"><img src="${ex.img}" alt="${ex.title}" loading="lazy" /><span>${ex.title}</span></button>`
+  ).join("");
+
+  const loadExample = async (i) => {
+    const ex = EXAMPLES[i];
+    await loadBase(ex.img);
+    ex.preset.forEach((p) => addSticker(stickerById[p.id], p));
+    setSelected(-1);
+  };
+  $("#exampleThumbs").addEventListener("click", (e) => {
+    const btn = e.target.closest(".example-thumb");
+    if (btn) loadExample(+btn.dataset.i);
+  });
+
+  /* upload */
+  const dropzone = $("#dropzone");
+  const fileInput = $("#fileInput");
+  const readFile = (file) => {
+    if (!file || !file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = () => loadBase(reader.result);
+    reader.readAsDataURL(file);
+  };
+  dropzone.addEventListener("click", () => fileInput.click());
+  dropzone.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") fileInput.click(); });
+  fileInput.addEventListener("change", () => readFile(fileInput.files[0]));
+  ["dragover", "dragenter"].forEach((ev) =>
+    dropzone.addEventListener(ev, (e) => { e.preventDefault(); dropzone.classList.add("is-drag"); })
+  );
+  ["dragleave", "drop"].forEach((ev) =>
+    dropzone.addEventListener(ev, (e) => { e.preventDefault(); dropzone.classList.remove("is-drag"); })
+  );
+  dropzone.addEventListener("drop", (e) => readFile(e.dataTransfer.files[0]));
+
+  /* toolbar */
+  $("#beautifyBtn").addEventListener("click", beautify);
+  $("#clearBtn").addEventListener("click", () => { placed = []; setSelected(-1); });
+  $("#newPhotoBtn").addEventListener("click", () => {
+    studioWork.hidden = true;
+    studioUpload.hidden = false;
+    fileInput.value = "";
+  });
+  $("#downloadBtn").addEventListener("click", () => {
+    render(false);
+    const a = document.createElement("a");
+    a.download = "my-plantscape.jpg";
+    a.href = canvas.toDataURL("image/jpeg", 0.92);
+    a.click();
+    render();
+  });
+
+  /* compare slider */
+  const updateCompare = () => {
+    const v = compareRange.value;
+    beforeLayer.style.setProperty("--cmp", `${v}%`);
+    stage.classList.toggle("is-comparing", v > 2);
+    compareRange.style.setProperty("--fill", `${v}%`);
+  };
+  compareRange.addEventListener("input", updateCompare);
+
+  /* canvas interaction */
+  const canvasPoint = (e) => {
+    const r = canvas.getBoundingClientRect();
+    return {
+      x: ((e.clientX - r.left) / r.width) * canvas.width,
+      y: ((e.clientY - r.top) / r.height) * canvas.height,
+    };
+  };
+  let mode = null; // "drag" | "resize"
+  let grab = null;
+
+  canvas.addEventListener("pointerdown", (e) => {
+    const pt = canvasPoint(e);
+    if (selected >= 0 && placed[selected]) {
+      const b = bbox(placed[selected]);
+      const hx = b.x + b.w + 6, hy = b.y + b.h + 6;
+      if (Math.hypot(pt.x - hx, pt.y - hy) < HANDLE * 1.6) {
+        mode = "resize";
+        canvas.setPointerCapture(e.pointerId);
+        return;
+      }
+    }
+    for (let i = placed.length - 1; i >= 0; i--) {
+      const b = bbox(placed[i]);
+      if (pt.x >= b.x && pt.x <= b.x + b.w && pt.y >= b.y && pt.y <= b.y + b.h) {
+        setSelected(i);
+        mode = "drag";
+        grab = { dx: pt.x - placed[i].x, dy: pt.y - placed[i].y };
+        canvas.setPointerCapture(e.pointerId);
+        return;
+      }
+    }
+    setSelected(-1);
+  });
+  canvas.addEventListener("pointermove", (e) => {
+    if (!mode || selected < 0) return;
+    const pt = canvasPoint(e);
+    const p = placed[selected];
+    if (mode === "drag") {
+      p.x = pt.x - grab.dx;
+      p.y = pt.y - grab.dy;
+    } else {
+      const newH = Math.max(canvas.height * 0.05, (pt.y - p.y) * 2 - 12);
+      p.h = Math.min(canvas.height * 1.1, newH);
+    }
+    render();
+  });
+  const endPointer = () => { mode = null; grab = null; };
+  canvas.addEventListener("pointerup", endPointer);
+  canvas.addEventListener("pointercancel", endPointer);
+  canvas.addEventListener("wheel", (e) => {
+    if (selected < 0) return;
+    e.preventDefault();
+    const p = placed[selected];
+    p.h = Math.max(canvas.height * 0.05, Math.min(canvas.height * 1.1, p.h * (e.deltaY < 0 ? 1.06 : 0.94)));
+    render();
+  }, { passive: false });
+
+  /* selection toolbar */
+  const withSel = (fn) => { if (selected >= 0 && placed[selected]) { fn(placed[selected]); render(); } };
+  $("#selBigger").addEventListener("click", () => withSel((p) => { p.h = Math.min(canvas.height * 1.1, p.h * 1.12); }));
+  $("#selSmaller").addEventListener("click", () => withSel((p) => { p.h = Math.max(canvas.height * 0.05, p.h * 0.88); }));
+  $("#selFlip").addEventListener("click", () => withSel((p) => { p.flip = !p.flip; }));
+  $("#selDelete").addEventListener("click", () => {
+    if (selected >= 0) { placed.splice(selected, 1); setSelected(-1); }
+  });
+  addEventListener("keydown", (e) => {
+    if ((e.key === "Delete" || e.key === "Backspace") && selected >= 0 && !/input|select|textarea/i.test(e.target.tagName)) {
+      placed.splice(selected, 1);
+      setSelected(-1);
+    }
+  });
+
+  /* before/after gallery */
+  $("#baGrid").innerHTML = EXAMPLES.map(
+    (ex, i) => `
+    <button class="ba-card" data-i="${i}">
+      <span class="ba-card__stage">
+        <span class="ba-card__label">After</span>
+        <span class="ba-card__label ba-card__label--before">Before</span>
+        <img src="assets/img/rooms/${ex.id}-after.jpg" alt="${ex.title} styled with plants" loading="lazy" />
+        <img class="ba-card__before" src="${ex.img}" alt="" loading="lazy" />
+      </span>
+      <span class="ba-card__body">
+        <strong>${ex.title}</strong>
+        ${ex.blurb}
+        <span>Open in studio →</span>
+      </span>
+    </button>`
+  ).join("");
+  $("#baGrid").addEventListener("click", async (e) => {
+    const card = e.target.closest(".ba-card");
+    if (!card) return;
+    await loadExample(+card.dataset.i);
+    $("#studio").scrollIntoView({ behavior: "smooth" });
+  });
+
+  // used by the build step to pre-render the gallery's "after" images
+  window.tpcStudio = { loadExample, exportDataURL: () => { render(false); const d = canvas.toDataURL("image/jpeg", 0.9); render(); return d; } };
+
   /* ---------- newsletter ---------- */
   $("#ctaForm").addEventListener("submit", (e) => {
     e.preventDefault();

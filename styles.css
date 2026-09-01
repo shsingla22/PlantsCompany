@@ -501,6 +501,121 @@ input[type="range"]::-moz-range-thumb {
 .calc__text { font-size: 1.08rem; color: var(--ink-soft); max-width: 24rem; }
 .calc__text strong { color: var(--green-500); }
 
+/* ---------- plantscape studio ---------- */
+.studio { max-width: 62rem; margin-inline: auto; }
+
+.dropzone {
+  display: grid; justify-items: center; gap: 0.4rem; text-align: center;
+  padding: 3.2rem 1.5rem; cursor: pointer;
+  border: 2.5px dashed color-mix(in srgb, var(--green-500) 55%, transparent);
+  border-radius: var(--radius); background: var(--surface);
+  transition: border-color 0.3s, background 0.3s, transform 0.3s var(--ease-spring);
+  color: var(--ink-soft);
+}
+.dropzone strong { font-size: 1.2rem; color: var(--ink); }
+.dropzone:hover, .dropzone.is-drag { border-color: var(--green-500); background: var(--green-100); transform: scale(1.01); }
+.dropzone__icon { font-size: 2.6rem; }
+
+.studio__or { text-align: center; margin: 1.6rem 0 1rem; color: var(--ink-faint); font-size: 0.95rem; }
+.studio__examples { display: flex; gap: 0.9rem; justify-content: center; flex-wrap: wrap; }
+.example-thumb {
+  border: 3px solid transparent; border-radius: 16px; overflow: hidden; padding: 0;
+  background: none; box-shadow: var(--shadow);
+  transition: transform 0.3s var(--ease-spring), border-color 0.3s;
+}
+.example-thumb img { width: 150px; height: 100px; object-fit: cover; display: block; }
+.example-thumb span { display: block; font-size: 0.8rem; font-weight: 600; padding: 0.35rem; color: var(--ink-soft); background: var(--surface); }
+.example-thumb:hover { transform: translateY(-4px) scale(1.03); border-color: var(--green-500); }
+
+.studio__toolbar {
+  display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; margin-bottom: 1rem;
+}
+.studio__toolbar .btn { padding: 0.6rem 1.2rem; font-size: 0.92rem; }
+.studio__hint { font-size: 0.82rem; color: var(--ink-faint); flex-basis: 100%; }
+
+.studio__stage {
+  position: relative; border-radius: var(--radius); overflow: hidden;
+  box-shadow: var(--shadow); line-height: 0; touch-action: none;
+  background: var(--surface);
+}
+.studio__stage canvas { width: 100%; height: auto; display: block; cursor: grab; }
+.studio__before {
+  position: absolute; inset: 0; pointer-events: none;
+  clip-path: inset(0 calc(100% - var(--cmp, 0%)) 0 0);
+}
+.studio__before img { width: 100%; height: 100%; object-fit: fill; }
+.studio__divider {
+  position: absolute; top: 0; bottom: 0; left: var(--cmp, 0%); width: 3px;
+  background: #fff; box-shadow: 0 0 8px rgba(0, 0, 0, 0.45);
+}
+.studio__tag {
+  position: absolute; top: 0.8rem; z-index: 2; line-height: 1.4;
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  background: rgba(15, 25, 18, 0.62); color: #fff; padding: 0.28rem 0.7rem; border-radius: 999px;
+  opacity: 0; transition: opacity 0.3s;
+}
+.studio__tag--before { left: 0.8rem; }
+.studio__tag--after { right: 0.8rem; }
+.studio__stage.is-comparing .studio__tag { opacity: 1; }
+
+.studio__compare {
+  display: flex; align-items: center; gap: 0.9rem; margin-top: 0.9rem;
+  font-weight: 600; font-size: 0.92rem; color: var(--ink-soft);
+}
+.studio__compare input { flex: 1; }
+
+.studio__selbar {
+  display: flex; align-items: center; gap: 0.5rem; margin-top: 0.9rem;
+  font-size: 0.88rem; color: var(--ink-soft);
+}
+.studio__selbar button {
+  width: 38px; height: 38px; border-radius: 12px;
+  border: 1.5px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  background: var(--surface); font-size: 1rem; color: var(--ink);
+  transition: transform 0.25s var(--ease-spring), border-color 0.25s;
+}
+.studio__selbar button:hover { transform: translateY(-2px); border-color: var(--green-500); }
+
+.studio__palette {
+  display: flex; gap: 0.7rem; margin-top: 1.1rem; padding: 0.9rem;
+  overflow-x: auto; background: var(--surface); border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent);
+}
+.palette-item {
+  display: grid; justify-items: center; gap: 0.25rem; flex: 0 0 auto;
+  background: none; border: none; padding: 0.4rem 0.5rem; border-radius: 12px;
+  font-size: 0.72rem; font-weight: 600; color: var(--ink-soft);
+  transition: background 0.25s, transform 0.25s var(--ease-spring);
+}
+.palette-item img { height: 58px; }
+.palette-item:hover { background: var(--green-100); transform: translateY(-3px); }
+
+.studio__gallery { margin-top: 3.2rem; }
+.studio__gallery-title { font-size: 1.25rem; margin-bottom: 1.2rem; }
+.ba-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.2rem; }
+.ba-card {
+  border: none; padding: 0; text-align: left; background: var(--surface);
+  border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); color: inherit;
+  transition: transform 0.3s var(--ease-spring), box-shadow 0.3s;
+}
+.ba-card:hover { transform: translateY(-6px); box-shadow: 0 26px 44px -18px rgba(20, 48, 31, 0.4); }
+.ba-card__stage { position: relative; line-height: 0; }
+.ba-card__stage img { width: 100%; height: 170px; object-fit: cover; }
+.ba-card__stage .ba-card__before { position: absolute; inset: 0; opacity: 0; transition: opacity 0.35s; }
+.ba-card:hover .ba-card__before, .ba-card:focus-visible .ba-card__before { opacity: 1; }
+.ba-card__label {
+  position: absolute; top: 0.6rem; left: 0.6rem; z-index: 2; line-height: 1.4;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  background: rgba(15, 25, 18, 0.62); color: #fff; padding: 0.24rem 0.6rem; border-radius: 999px;
+  transition: opacity 0.35s;
+}
+.ba-card__label--before { opacity: 0; }
+.ba-card:hover .ba-card__label--before, .ba-card:focus-visible .ba-card__label--before { opacity: 1; }
+.ba-card:hover .ba-card__label:not(.ba-card__label--before) { opacity: 0; }
+.ba-card__body { padding: 0.9rem 1.1rem 1.1rem; line-height: 1.5; }
+.ba-card__body strong { display: block; margin-bottom: 0.1rem; }
+.ba-card__body span { font-size: 0.85rem; color: var(--green-500); font-weight: 600; }
+
 /* ---------- quotes ---------- */
 .quotes { max-width: 46rem; margin-inline: auto; text-align: center; position: relative; min-height: 240px; }
 .quote {

@@ -541,11 +541,12 @@ input[type="range"]::-moz-range-thumb {
 .studio__stage canvas { width: 100%; height: auto; display: block; cursor: grab; }
 .studio__before {
   position: absolute; inset: 0; pointer-events: none;
-  clip-path: inset(0 calc(100% - var(--cmp, 0%)) 0 0);
+  -webkit-clip-path: inset(0 100% 0 0);
+  clip-path: inset(0 100% 0 0); /* JS drives the reveal via inline styles */
 }
 .studio__before img { width: 100%; height: 100%; object-fit: fill; }
 .studio__divider {
-  position: absolute; top: 0; bottom: 0; left: var(--cmp, 0%); width: 3px;
+  position: absolute; top: 0; bottom: 0; left: 0; width: 3px;
   background: #fff; box-shadow: 0 0 8px rgba(0, 0, 0, 0.45);
 }
 .studio__tag {

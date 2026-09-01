@@ -355,21 +355,24 @@
   autoAdvance();
 
   /* ---------- plantscape studio ---------- */
+  // ratio = viewBox width/height; Safari can report naturalWidth 0 for SVG
+  // images, so sizes are never derived from the loaded image.
   const STICKERS = [
-    { id: "monstera", label: "Monstera", kind: "floor", scale: 0.42 },
-    { id: "rubber-plant", label: "Rubber plant", kind: "floor", scale: 0.44 },
-    { id: "bird-of-paradise", label: "Bird of paradise", kind: "floor", scale: 0.5 },
-    { id: "palm", label: "Areca palm", kind: "floor", scale: 0.48 },
-    { id: "snake-plant", label: "Snake plant", kind: "floor", scale: 0.3 },
-    { id: "olive-tree", label: "Olive tree", kind: "floor", scale: 0.55 },
-    { id: "fern-hanging", label: "Hanging fern", kind: "hang", scale: 0.28 },
-    { id: "pothos-hanging", label: "Hanging pothos", kind: "hang", scale: 0.3 },
-    { id: "cactus-trio", label: "Desert trio", kind: "accent", scale: 0.14 },
+    { id: "monstera", label: "Monstera", kind: "floor", scale: 0.42, ratio: 220 / 260 },
+    { id: "rubber-plant", label: "Rubber plant", kind: "floor", scale: 0.44, ratio: 190 / 260 },
+    { id: "bird-of-paradise", label: "Bird of paradise", kind: "floor", scale: 0.5, ratio: 200 / 290 },
+    { id: "palm", label: "Areca palm", kind: "floor", scale: 0.48, ratio: 240 / 270 },
+    { id: "snake-plant", label: "Snake plant", kind: "floor", scale: 0.3, ratio: 160 / 230 },
+    { id: "olive-tree", label: "Olive tree", kind: "floor", scale: 0.55, ratio: 210 / 290 },
+    { id: "fern-hanging", label: "Hanging fern", kind: "hang", scale: 0.28, ratio: 200 / 240 },
+    { id: "pothos-hanging", label: "Hanging pothos", kind: "hang", scale: 0.3, ratio: 180 / 250 },
+    { id: "cactus-trio", label: "Desert trio", kind: "accent", scale: 0.14, ratio: 240 / 150 },
   ];
   const stickerById = {};
   STICKERS.forEach((s) => {
     s.src = `assets/stickers/${s.id}.svg`;
     s.img = new Image();
+    s.img.onload = () => render();
     s.img.src = s.src;
     stickerById[s.id] = s;
   });
@@ -433,7 +436,7 @@
   const HANDLE = 14;
 
   const bbox = (p) => {
-    const w = p.h * (p.s.img.naturalWidth / p.s.img.naturalHeight);
+    const w = p.h * p.s.ratio;
     return { x: p.x - w / 2, y: p.y - p.h / 2, w, h: p.h };
   };
 
@@ -453,6 +456,7 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     for (const p of placed) {
+      if (!p.s.img.complete) continue; // redrawn by the sticker's onload
       const b = bbox(p);
       ctx.save();
       ctx.translate(p.x, p.y);
@@ -505,7 +509,7 @@
 
   const addSticker = (s, opts = {}) => {
     const h = (opts.h ?? s.scale) * canvas.height;
-    const w = h * (s.img.naturalWidth / s.img.naturalHeight);
+    const w = h * s.ratio;
     let x, y;
     if (opts.x != null) {
       x = opts.x * canvas.width;
@@ -606,10 +610,14 @@
     render();
   });
 
-  /* compare slider */
+  /* compare slider — inline styles, not var()-in-clip-path, for Safari */
+  const divider = $(".studio__divider");
   const updateCompare = () => {
-    const v = compareRange.value;
-    beforeLayer.style.setProperty("--cmp", `${v}%`);
+    const v = +compareRange.value;
+    const clip = `inset(0 ${100 - v}% 0 0)`;
+    beforeLayer.style.clipPath = clip;
+    beforeLayer.style.webkitClipPath = clip;
+    divider.style.left = `${v}%`;
     stage.classList.toggle("is-comparing", v > 2);
     compareRange.style.setProperty("--fill", `${v}%`);
   };

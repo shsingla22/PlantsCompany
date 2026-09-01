@@ -1,4 +1,4 @@
-/* Verdure · Home Plant Systems — interactions */
+/* ThePlantsCompany · Home Plant Systems — interactions */
 (() => {
   "use strict";
 
@@ -8,7 +8,7 @@
   /* ---------- theme toggle ---------- */
   const themeToggle = $("#themeToggle");
   const storedTheme = (() => {
-    try { return localStorage.getItem("verdure-theme"); } catch { return null; }
+    try { return localStorage.getItem("tpc-theme"); } catch { return null; }
   })();
   if (storedTheme === "dark" || (!storedTheme && matchMedia("(prefers-color-scheme: dark)").matches)) {
     document.documentElement.dataset.theme = "dark";
@@ -17,7 +17,7 @@
     const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
     if (next === "dark") document.documentElement.dataset.theme = "dark";
     else delete document.documentElement.dataset.theme;
-    try { localStorage.setItem("verdure-theme", next); } catch { /* private mode */ }
+    try { localStorage.setItem("tpc-theme", next); } catch { /* private mode */ }
   });
 
   /* ---------- nav ---------- */
@@ -134,12 +134,18 @@
     const match = MATCHES.find((m) =>
       Object.entries(m.if).every(([k, v]) => answers[k] === v)
     );
+    const plant = PLANTS.find((p) => p.name === match.name);
     $("#finderMatch").innerHTML = `
-      <span class="match__emoji">${match.emoji}</span>
-      <h3>${match.name}</h3>
+      ${plant ? `<img class="match__photo" src="${plant.img}" alt="${match.name} (${match.latin})" />` : `<span class="match__emoji">${match.emoji}</span>`}
+      <h3>${match.emoji} ${match.name}</h3>
       <p class="match__latin">${match.latin}</p>
       <p>${match.why}</p>
       <div class="match__badges">${match.badges.map((b) => `<span class="badge">${b}</span>`).join("")}</div>
+      ${plant ? `
+      <div class="match__shop">
+        <a class="btn btn--primary" href="${plant.buy.amazon}" target="_blank" rel="noopener noreferrer">🛒 Shop on Amazon</a>
+        <a class="btn btn--ghost" href="${plant.buy.etsy}" target="_blank" rel="noopener noreferrer">Find on Etsy</a>
+      </div>` : ""}
     `;
   };
 
@@ -157,26 +163,33 @@
   showStep(0);
 
   /* ---------- catalog ---------- */
+  const shopLinks = (query) => ({
+    amazon: `https://www.amazon.com/s?k=${encodeURIComponent(query + " live plant")}`,
+    etsy: `https://www.etsy.com/search?q=${encodeURIComponent(query + " live plant")}`,
+  });
+
   const PLANTS = [
-    { emoji: "🌱", name: "Monstera Deliciosa", latin: "Monstera deliciosa", tags: ["statement"], tint: ["#dcefe0", "#eef3e2"], water: "Weekly", light: "Bright, indirect", pets: false, desc: "The split-leaf celebrity. Fast-growing and dramatic, with fenestrated leaves that get bolder every year." },
-    { emoji: "🐍", name: "Snake Plant", latin: "Sansevieria trifasciata", tags: ["easy", "low-light"], tint: ["#e6ecd8", "#f2efe0"], water: "Every 3 weeks", light: "Any", pets: false, desc: "Upright, architectural, indestructible. Filters the air while you forget it exists." },
-    { emoji: "💚", name: "Golden Pothos", latin: "Epipremnum aureum", tags: ["easy", "low-light"], tint: ["#ddeede", "#eff2e0"], water: "Weekly", light: "Low to bright", pets: false, desc: "Trailing vines for shelves and hooks. Roots from a cutting in a glass of water." },
-    { emoji: "🕷️", name: "Spider Plant", latin: "Chlorophytum comosum", tags: ["easy", "pet-safe"], tint: ["#e2f0e4", "#f4f1e4"], water: "Weekly", light: "Medium", pets: true, desc: "Cheerful arching ribbons that shoot out baby plantlets. Completely safe for cats and dogs." },
-    { emoji: "🌿", name: "Boston Fern", latin: "Nephrolepis exaltata", tags: ["pet-safe", "low-light"], tint: ["#dcefdc", "#ecf2e0"], water: "2× a week", light: "Indirect", pets: true, desc: "A cascade of soft fronds that loves humidity. Happiest in bathrooms and shaded porches." },
-    { emoji: "🎻", name: "Fiddle Leaf Fig", latin: "Ficus lyrata", tags: ["statement"], tint: ["#e4eedb", "#f2f0e0"], water: "Weekly", light: "Bright", pets: false, desc: "Violin-shaped leaves on a tree that can reach your ceiling. Demanding, but worth every ray." },
-    { emoji: "🦚", name: "Calathea Orbifolia", latin: "Goeppertia orbifolia", tags: ["statement", "pet-safe", "low-light"], tint: ["#def0e8", "#eef2e4"], water: "Weekly", light: "Low, indirect", pets: true, desc: "Silver-striped leaves that fold up at night like praying hands. A living piece of art." },
-    { emoji: "🌴", name: "Parlor Palm", latin: "Chamaedorea elegans", tags: ["easy", "pet-safe", "low-light"], tint: ["#e0eedd", "#f1f2e2"], water: "Every 10 days", light: "Low to medium", pets: true, desc: "A Victorian favorite: soft, feathery, pet-safe, and content in the corner you thought was hopeless." },
-    { emoji: "🪴", name: "ZZ Plant", latin: "Zamioculcas zamiifolia", tags: ["easy", "low-light"], tint: ["#e3edd9", "#f2f1e1"], water: "Every 3 weeks", light: "Low to bright", pets: false, desc: "Glossy, waxy, water-storing. The plant that thrives on the least attention of all." },
-    { emoji: "📿", name: "String of Pearls", latin: "Senecio rowleyanus", tags: ["statement"], tint: ["#e2efe2", "#f3f1e3"], water: "Every 2 weeks", light: "Bright", pets: false, desc: "Beads of green tumbling from the pot like a living necklace. A sun-drenched shelf's best friend." },
-    { emoji: "🌵", name: "Echeveria", latin: "Echeveria elegans", tags: ["easy"], tint: ["#e7f0e0", "#f5f1e2"], water: "Every 3 weeks", light: "Direct sun", pets: false, desc: "Sea-glass rosettes that ask only for sunshine and restraint with the watering can." },
-    { emoji: "🍑", name: "Peperomia", latin: "Peperomia obtusifolia", tags: ["easy", "pet-safe"], tint: ["#e1efdf", "#f2f2e1"], water: "Every 10 days", light: "Medium", pets: true, desc: "Compact, rubbery leaves in endless varieties. Desk-sized, pet-safe, and quietly charming." },
+    { emoji: "🌱", name: "Monstera Deliciosa", latin: "Monstera deliciosa", img: "assets/img/monstera.jpg", buy: shopLinks("monstera deliciosa"), tags: ["statement"], tint: ["#dcefe0", "#eef3e2"], water: "Weekly", light: "Bright, indirect", pets: false, desc: "The split-leaf celebrity. Fast-growing and dramatic, with fenestrated leaves that get bolder every year." },
+    { emoji: "🐍", name: "Snake Plant", latin: "Sansevieria trifasciata", img: "assets/img/snake-plant.jpg", buy: shopLinks("snake plant sansevieria"), tags: ["easy", "low-light"], tint: ["#e6ecd8", "#f2efe0"], water: "Every 3 weeks", light: "Any", pets: false, desc: "Upright, architectural, indestructible. Filters the air while you forget it exists." },
+    { emoji: "💚", name: "Golden Pothos", latin: "Epipremnum aureum", img: "assets/img/pothos.jpg", buy: shopLinks("golden pothos"), tags: ["easy", "low-light"], tint: ["#ddeede", "#eff2e0"], water: "Weekly", light: "Low to bright", pets: false, desc: "Trailing vines for shelves and hooks. Roots from a cutting in a glass of water." },
+    { emoji: "🕷️", name: "Spider Plant", latin: "Chlorophytum comosum", img: "assets/img/spider-plant.jpg", buy: shopLinks("spider plant"), tags: ["easy", "pet-safe"], tint: ["#e2f0e4", "#f4f1e4"], water: "Weekly", light: "Medium", pets: true, desc: "Cheerful arching ribbons that shoot out baby plantlets. Completely safe for cats and dogs." },
+    { emoji: "🌿", name: "Boston Fern", latin: "Nephrolepis exaltata", img: "assets/img/boston-fern.jpg", buy: shopLinks("boston fern"), tags: ["pet-safe", "low-light"], tint: ["#dcefdc", "#ecf2e0"], water: "2× a week", light: "Indirect", pets: true, desc: "A cascade of soft fronds that loves humidity. Happiest in bathrooms and shaded porches." },
+    { emoji: "🎻", name: "Fiddle Leaf Fig", latin: "Ficus lyrata", img: "assets/img/fiddle-leaf-fig.jpg", buy: shopLinks("fiddle leaf fig"), tags: ["statement"], tint: ["#e4eedb", "#f2f0e0"], water: "Weekly", light: "Bright", pets: false, desc: "Violin-shaped leaves on a tree that can reach your ceiling. Demanding, but worth every ray." },
+    { emoji: "🦚", name: "Calathea Orbifolia", latin: "Goeppertia orbifolia", img: "assets/img/calathea.jpg", buy: shopLinks("calathea orbifolia"), tags: ["statement", "pet-safe", "low-light"], tint: ["#def0e8", "#eef2e4"], water: "Weekly", light: "Low, indirect", pets: true, desc: "Silver-striped leaves that fold up at night like praying hands. A living piece of art." },
+    { emoji: "🌴", name: "Parlor Palm", latin: "Chamaedorea elegans", img: "assets/img/parlor-palm.jpg", buy: shopLinks("parlor palm"), tags: ["easy", "pet-safe", "low-light"], tint: ["#e0eedd", "#f1f2e2"], water: "Every 10 days", light: "Low to medium", pets: true, desc: "A Victorian favorite: soft, feathery, pet-safe, and content in the corner you thought was hopeless." },
+    { emoji: "🪴", name: "ZZ Plant", latin: "Zamioculcas zamiifolia", img: "assets/img/zz-plant.jpg", buy: shopLinks("zz plant"), tags: ["easy", "low-light"], tint: ["#e3edd9", "#f2f1e1"], water: "Every 3 weeks", light: "Low to bright", pets: false, desc: "Glossy, waxy, water-storing. The plant that thrives on the least attention of all." },
+    { emoji: "📿", name: "String of Pearls", latin: "Senecio rowleyanus", img: "assets/img/string-of-pearls.jpg", buy: shopLinks("string of pearls"), tags: ["statement"], tint: ["#e2efe2", "#f3f1e3"], water: "Every 2 weeks", light: "Bright", pets: false, desc: "Beads of green tumbling from the pot like a living necklace. A sun-drenched shelf's best friend." },
+    { emoji: "🌵", name: "Echeveria", latin: "Echeveria elegans", img: "assets/img/echeveria.jpg", buy: shopLinks("echeveria succulent"), tags: ["easy"], tint: ["#e7f0e0", "#f5f1e2"], water: "Every 3 weeks", light: "Direct sun", pets: false, desc: "Sea-glass rosettes that ask only for sunshine and restraint with the watering can." },
+    { emoji: "🍑", name: "Peperomia", latin: "Peperomia obtusifolia", img: "assets/img/peperomia.jpg", buy: shopLinks("peperomia obtusifolia"), tags: ["easy", "pet-safe"], tint: ["#e1efdf", "#f2f2e1"], water: "Every 10 days", light: "Medium", pets: true, desc: "Compact, rubbery leaves in endless varieties. Desk-sized, pet-safe, and quietly charming." },
   ];
 
   const catalogGrid = $("#catalogGrid");
   catalogGrid.innerHTML = PLANTS.map(
     (p, i) => `
     <button class="plant-card" data-tags="${p.tags.join(" ")}" data-index="${i}" style="--tint-a:${p.tint[0]};--tint-b:${p.tint[1]}">
-      <span class="plant-card__art">${p.emoji}</span>
+      <span class="plant-card__art">
+        <img src="${p.img}" alt="${p.name} (${p.latin})" loading="lazy" />
+      </span>
       <span class="plant-card__body">
         <h3>${p.name}</h3>
         <span class="plant-card__latin">${p.latin}</span>
@@ -208,16 +221,20 @@
   const openModal = (plant) => {
     lastFocused = document.activeElement;
     modalBody.innerHTML = `
-      <span class="modal__emoji">${plant.emoji}</span>
-      <h3 id="modalTitle">${plant.name}</h3>
+      <img class="modal__photo" src="${plant.img}" alt="${plant.name} (${plant.latin})" />
+      <h3 id="modalTitle">${plant.emoji} ${plant.name}</h3>
       <p class="modal__latin">${plant.latin}</p>
       <p>${plant.desc}</p>
       <dl class="modal__care">
         <div><dt>💧 Watering</dt><dd>${plant.water}</dd></div>
         <div><dt>☀️ Light</dt><dd>${plant.light}</dd></div>
         <div><dt>🐾 Pets</dt><dd>${plant.pets ? "Safe for pets" : "Keep out of reach"}</dd></div>
-        <div><dt>🤖 Verdure pick</dt><dd>${plant.tags.includes("easy") ? "Terra Sense" : "Aqua Loop + Terra Sense"}</dd></div>
+        <div><dt>🤖 Our pick</dt><dd>${plant.tags.includes("easy") ? "Terra Sense" : "Aqua Loop + Terra Sense"}</dd></div>
       </dl>
+      <div class="modal__shop">
+        <a class="btn btn--primary" href="${plant.buy.amazon}" target="_blank" rel="noopener noreferrer">🛒 Shop on Amazon</a>
+        <a class="btn btn--ghost" href="${plant.buy.etsy}" target="_blank" rel="noopener noreferrer">Find on Etsy</a>
+      </div>
     `;
     modal.hidden = false;
     document.body.style.overflow = "hidden";

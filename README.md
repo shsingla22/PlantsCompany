@@ -1,6 +1,6 @@
-# Verdure · Home Plant Systems 🌿
+# ThePlantsCompany · Home Plant Systems 🌿
 
-A beautifully designed, fully interactive marketing site for Verdure — smart
+A beautifully designed, fully interactive marketing site for ThePlantsCompany — smart
 home plant care systems (watering, light, and soil sensing).
 
 ## Highlights
@@ -9,7 +9,7 @@ home plant care systems (watering, light, and soil sensing).
   blobs, parallax leaves, and count-up stats.
 - **Plant Finder quiz** — three questions (light, care level, pets) match the
   visitor with one of ten plants.
-- **Filterable catalog** — twelve plants with filter chips and a care-detail
+- **Filterable catalog** — twelve plants with real photos, filter chips, buy links, and a care-detail
   modal for each.
 - **Live care dashboard** — drag moisture / light / humidity sliders and watch
   the plant-happiness gauge and advice respond in real time.
@@ -34,3 +34,4 @@ python3 -m http.server   # then visit http://localhost:8000
 | `index.html` | Page structure and content                 |
 | `styles.css` | Design system, theming, layout, animations |
 | `script.js`  | Quiz, catalog, dashboard, and interactions |
+| `assets/img/` | Plant photos (see `ATTRIBUTIONS.md` for credits) |

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Verdure · Home Plant Systems
+   ThePlantsCompany · Home Plant Systems
    ========================================================================== */
 
 :root {
@@ -376,6 +376,12 @@ a { color: inherit; }
 .finder__match .match__latin { font-style: italic; color: var(--ink-faint); margin-bottom: 0.9rem; }
 .finder__match p { color: var(--ink-soft); max-width: 30rem; margin-inline: auto; }
 .finder__match .match__badges { display: flex; gap: 0.5rem; justify-content: center; margin-top: 1.1rem; flex-wrap: wrap; }
+.match__photo {
+  width: min(300px, 80%); height: 200px; object-fit: cover;
+  border-radius: 20px; margin-inline: auto; box-shadow: var(--shadow);
+  animation: match-pop 0.7s var(--ease-spring);
+}
+.match__shop { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem; }
 
 /* ---------- catalog ---------- */
 .filters { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 2.2rem; }
@@ -399,11 +405,14 @@ a { color: inherit; }
 .plant-card:hover { transform: translateY(-7px); box-shadow: 0 26px 44px -18px rgba(20, 48, 31, 0.4); }
 .plant-card.is-hidden { display: none; }
 .plant-card__art {
-  height: 130px; display: grid; place-items: center; font-size: 3.4rem;
+  height: 170px; display: block; overflow: hidden;
   background: linear-gradient(145deg, var(--tint-a, #e3efe6), var(--tint-b, #f0efe4));
-  transition: transform 0.4s var(--ease-spring);
 }
-.plant-card:hover .plant-card__art { transform: scale(1.06); }
+.plant-card__art img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.5s var(--ease-spring);
+}
+.plant-card:hover .plant-card__art img { transform: scale(1.07); }
 .plant-card__body { padding: 1.1rem 1.2rem 1.3rem; }
 .plant-card__body h3 { font-size: 1.15rem; margin-bottom: 0.15rem; }
 .plant-card__latin { font-size: 0.82rem; font-style: italic; color: var(--ink-faint); margin-bottom: 0.7rem; }
@@ -568,6 +577,12 @@ input[type="range"]::-moz-range-thumb {
 }
 .modal__close:hover { transform: rotate(90deg); background: var(--terracotta-soft); }
 .modal__emoji { font-size: 3.6rem; }
+.modal__photo {
+  width: calc(100% + 4.8rem); max-width: none; margin: -2.4rem -2.4rem 1.4rem;
+  height: 220px; object-fit: cover; border-radius: 26px 26px 0 0;
+}
+.modal__shop { display: flex; gap: 0.8rem; flex-wrap: wrap; margin-top: 1.6rem; }
+.modal__shop .btn { font-size: 0.95rem; padding: 0.75rem 1.4rem; }
 .modal__body h3 { font-size: 1.8rem; margin: 0.5rem 0 0.1rem; }
 .modal__body .modal__latin { font-style: italic; color: var(--ink-faint); margin-bottom: 1rem; }
 .modal__body p { color: var(--ink-soft); margin-bottom: 1.3rem; }
@@ -592,6 +607,7 @@ input[type="range"]::-moz-range-thumb {
   .calc { grid-template-columns: 1fr; }
 }
 @media (max-width: 760px) {
+  .nav__brand { font-size: 1.05rem; }
   .nav__links, .nav__actions .btn--small { display: none; }
   .nav__actions { margin-left: auto; }
   .nav__burger {

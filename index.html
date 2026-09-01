@@ -315,9 +315,11 @@
         <p class="eyebrow"><span class="eyebrow__dot"></span> Plantscape Studio</p>
         <h2>See your space,<br /><em>beautified with plants.</em></h2>
         <p class="section__sub">
-          Upload a photo of any room, balcony, or backyard — or pick an example — then tap
-          <strong>Beautify</strong> to see it styled with plants. Drag to rearrange, slide to compare
-          before &amp; after, and download the result. Photos never leave your device.
+          Upload a photo of any room, balcony, or backyard — or pick an example. Tap
+          <strong>AI Beautify</strong> for a photorealistic, magazine-style makeover, or
+          <strong>Sticker preview</strong> for an instant illustrated one. Slide to compare
+          before &amp; after and download the result. Photos stay in your browser unless you
+          choose AI Beautify, which sends the photo to Google's Gemini API using your own key.
         </p>
       </div>
 
@@ -337,14 +339,41 @@
         <!-- workspace state -->
         <div class="studio__work" id="studioWork" hidden>
           <div class="studio__toolbar">
-            <button class="btn btn--primary" id="beautifyBtn">✨ Beautify</button>
+            <button class="btn btn--primary" id="aiBtn">🪄 AI Beautify</button>
+            <button class="btn btn--ghost" id="beautifyBtn">✨ Sticker preview</button>
+            <button class="btn btn--ghost" id="undoAiBtn" hidden>↩ Undo AI</button>
             <button class="btn btn--ghost" id="clearBtn">↺ Clear plants</button>
             <button class="btn btn--ghost" id="downloadBtn">⬇ Download</button>
             <button class="btn btn--ghost" id="newPhotoBtn">🖼 New photo</button>
             <span class="studio__hint">Tap a plant below to add it · drag to move · scroll or drag the corner dot to resize</span>
           </div>
 
+          <div class="ai-panel" id="aiPanel" hidden>
+            <h4>🪄 Photorealistic AI Beautify</h4>
+            <p>
+              This mode sends your photo to Google's <strong>Gemini</strong> image model, which
+              repaints it with realistic plants — matching your room's lighting and perspective.
+              It needs your own (free) Google AI Studio key, used directly from your browser and
+              stored only on this device.
+            </p>
+            <ol>
+              <li>Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/apikey</a></li>
+              <li>Paste it below and hit Generate</li>
+            </ol>
+            <div class="ai-panel__row">
+              <input type="password" id="aiKeyInput" placeholder="Paste your Gemini API key" autocomplete="off" />
+              <button class="btn btn--primary" id="aiGoBtn">Generate</button>
+              <button class="btn btn--ghost" id="aiCancelBtn">Cancel</button>
+            </div>
+            <p class="ai-panel__note" id="aiError" hidden></p>
+          </div>
+
           <div class="studio__stage" id="studioStage">
+            <div class="studio__busy" id="aiBusy" hidden>
+              <span class="studio__spinner"></span>
+              <strong>Growing your plantscape…</strong>
+              <span>The AI is repainting your photo — usually 10–25 seconds</span>
+            </div>
             <canvas id="studioCanvas"></canvas>
             <div class="studio__before" id="beforeLayer" aria-hidden="true">
               <img id="beforeImg" alt="" />

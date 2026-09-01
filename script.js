@@ -430,6 +430,7 @@
   const selBar = $("#selBar");
 
   let baseImg = null;
+  let aiImg = null; // photorealistic AI makeover, drawn instead of baseImg
   let placed = [];
   let selected = -1;
 
@@ -443,8 +444,8 @@
   const render = (showSel = true) => {
     if (!baseImg) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(baseImg, 0, 0, canvas.width, canvas.height);
-    if (placed.length) {
+    ctx.drawImage(aiImg || baseImg, 0, 0, canvas.width, canvas.height);
+    if (placed.length && !aiImg) {
       // subtle warm-light grade so the plantscape feels sunlit
       const g = ctx.createRadialGradient(
         canvas.width * 0.5, canvas.height * 0.2, 0,
@@ -496,6 +497,8 @@
       canvas.height = Math.round(img.naturalHeight * scale);
       beforeImg.src = src;
       placed = [];
+      aiImg = null;
+      $("#undoAiBtn").hidden = true;
       setSelected(-1);
       compareRange.value = 0;
       updateCompare();
@@ -593,8 +596,122 @@
   );
   dropzone.addEventListener("drop", (e) => readFile(e.dataTransfer.files[0]));
 
+  /* ---- AI Beautify (Gemini image editing, bring-your-own-key) ---- */
+  const AI_MODEL = "gemini-2.5-flash-image";
+  const AI_PROMPT =
+    "Redecorate this exact photo into a beautiful, plant-filled version of the same space. " +
+    "Keep the room's architecture, walls, windows, flooring, existing furniture, lighting direction " +
+    "and camera angle exactly the same. Add lush, realistic indoor plants in natural, tasteful spots — " +
+    "for example a large monstera or fiddle-leaf fig in a corner, an areca palm beside furniture, " +
+    "trailing pothos on shelves or hanging near windows, and a few small potted plants — with correct " +
+    "perspective, soft realistic shadows, and pots that match the room's style. You may add subtle " +
+    "plant-friendly styling like a woven basket or plant stand. Photorealistic, magazine-quality " +
+    "interior design photograph.";
+  const aiPanel = $("#aiPanel");
+  const aiError = $("#aiError");
+  const aiBusy = $("#aiBusy");
+  const getAiKey = () => { try { return localStorage.getItem("tpc-gemini-key") || ""; } catch { return ""; } };
+
+  const baseAsJpeg = () => {
+    // original photo only (no stickers/selection), capped for upload size
+    const off = document.createElement("canvas");
+    const scale = Math.min(1, 1024 / Math.max(baseImg.naturalWidth, baseImg.naturalHeight));
+    off.width = Math.round(baseImg.naturalWidth * scale);
+    off.height = Math.round(baseImg.naturalHeight * scale);
+    off.getContext("2d").drawImage(baseImg, 0, 0, off.width, off.height);
+    return off.toDataURL("image/jpeg", 0.87).split(",")[1];
+  };
+
+  const showAiError = (msg) => {
+    aiError.textContent = msg;
+    aiError.hidden = false;
+    aiPanel.hidden = false;
+  };
+
+  const aiBeautify = async () => {
+    const key = getAiKey();
+    if (!key) {
+      aiError.hidden = true;
+      aiPanel.hidden = false;
+      $("#aiKeyInput").focus();
+      return;
+    }
+    aiPanel.hidden = true;
+    aiBusy.hidden = false;
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${encodeURIComponent(key)}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                { inlineData: { mimeType: "image/jpeg", data: baseAsJpeg() } },
+                { text: AI_PROMPT },
+              ],
+            }],
+          }),
+        }
+      );
+      if (!res.ok) {
+        const detail = await res.json().catch(() => null);
+        const reason = detail?.error?.message || `HTTP ${res.status}`;
+        if (res.status === 400 || res.status === 403) {
+          try { localStorage.removeItem("tpc-gemini-key"); } catch { /* ignore */ }
+          throw new Error(`That key was rejected (${reason}). Please paste a valid Gemini API key.`);
+        }
+        if (res.status === 429) throw new Error("The free quota for this key is used up right now — try again in a minute.");
+        throw new Error(`The AI service returned an error: ${reason}`);
+      }
+      const data = await res.json();
+      const parts = data?.candidates?.[0]?.content?.parts || [];
+      const imgPart = parts.find((p) => p.inlineData?.data || p.inline_data?.data);
+      if (!imgPart) {
+        const text = parts.find((p) => p.text)?.text;
+        throw new Error(text ? `The model replied without an image: ${text.slice(0, 140)}` : "The model returned no image — please try again.");
+      }
+      const inline = imgPart.inlineData || imgPart.inline_data;
+      const result = new Image();
+      result.onload = () => {
+        aiImg = result;
+        placed = [];
+        setSelected(-1);
+        $("#undoAiBtn").hidden = false;
+        aiBusy.hidden = true;
+        compareRange.value = 50;
+        updateCompare();
+        render();
+      };
+      result.onerror = () => { aiBusy.hidden = true; showAiError("Could not decode the AI image — please try again."); };
+      result.src = `data:${inline.mimeType || inline.mime_type || "image/png"};base64,${inline.data}`;
+    } catch (err) {
+      aiBusy.hidden = true;
+      showAiError(err?.message || "Something went wrong talking to the AI service.");
+    }
+  };
+
+  $("#aiBtn").addEventListener("click", aiBeautify);
+  $("#aiGoBtn").addEventListener("click", () => {
+    const key = $("#aiKeyInput").value.trim();
+    if (!key) { showAiError("Paste your Gemini API key first."); return; }
+    try { localStorage.setItem("tpc-gemini-key", key); } catch { /* private mode: works for this page view only */ }
+    aiBeautify();
+  });
+  $("#aiCancelBtn").addEventListener("click", () => { aiPanel.hidden = true; });
+  $("#undoAiBtn").addEventListener("click", () => {
+    aiImg = null;
+    $("#undoAiBtn").hidden = true;
+    compareRange.value = 0;
+    updateCompare();
+    render();
+  });
+
   /* toolbar */
-  $("#beautifyBtn").addEventListener("click", beautify);
+  $("#beautifyBtn").addEventListener("click", () => {
+    if (aiImg) { aiImg = null; $("#undoAiBtn").hidden = true; }
+    beautify();
+  });
   $("#clearBtn").addEventListener("click", () => { placed = []; setSelected(-1); });
   $("#newPhotoBtn").addEventListener("click", () => {
     studioWork.hidden = true;
@@ -721,7 +838,7 @@
   });
 
   // used by the build step to pre-render the gallery's "after" images
-  window.tpcStudio = { loadExample, exportDataURL: () => { render(false); const d = canvas.toDataURL("image/jpeg", 0.9); render(); return d; } };
+  window.tpcStudio = { loadExample, hasAi: () => !!aiImg, exportDataURL: () => { render(false); const d = canvas.toDataURL("image/jpeg", 0.9); render(); return d; } };
 
   /* ---------- newsletter ---------- */
   $("#ctaForm").addEventListener("submit", (e) => {

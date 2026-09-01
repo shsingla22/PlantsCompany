@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Verdure — beautifully designed smart systems that keep your home plants thriving. Smart watering, light tracking, and care guidance." />
+  <title>Verdure · Home Plant Systems</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="cursor-glow" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav" id="nav">
+    <a class="nav__brand" href="#top">
+      <span class="nav__logo" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none"><path d="M16 28c0-9 2-16 12-20-1 10-4 17-12 20Z" fill="currentColor" opacity=".85"/><path d="M16 28C16 20 14 12 4 8c1 10 4 16 12 20Z" fill="currentColor"/><path d="M16 29V14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </span>
+      Verdure
+    </a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="#systems">Systems</a>
+      <a href="#finder">Plant Finder</a>
+      <a href="#catalog">Catalog</a>
+      <a href="#dashboard">Live Care</a>
+      <a href="#calculator">Calculator</a>
+    </nav>
+    <div class="nav__actions">
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <span class="theme-toggle__icon" aria-hidden="true"></span>
+      </button>
+      <a class="btn btn--small" href="#finder">Find your plant</a>
+    </div>
+    <button class="nav__burger" id="navBurger" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <main id="top">
+    <!-- ============ HERO ============ -->
+    <section class="hero">
+      <div class="hero__bg" aria-hidden="true">
+        <div class="blob blob--1"></div>
+        <div class="blob blob--2"></div>
+        <div class="blob blob--3"></div>
+      </div>
+
+      <div class="hero__leaves" aria-hidden="true">
+        <svg class="leaf leaf--1" viewBox="0 0 64 64"><path d="M32 58C32 38 38 20 60 8 56 34 48 50 32 58Z" fill="currentColor"/></svg>
+        <svg class="leaf leaf--2" viewBox="0 0 64 64"><path d="M32 58C32 38 26 20 4 8c4 26 12 42 28 50Z" fill="currentColor"/></svg>
+        <svg class="leaf leaf--3" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" fill="currentColor" opacity=".5"/></svg>
+        <svg class="leaf leaf--4" viewBox="0 0 64 64"><path d="M32 58C32 38 38 20 60 8 56 34 48 50 32 58Z" fill="currentColor"/></svg>
+        <svg class="leaf leaf--5" viewBox="0 0 64 64"><path d="M32 58C32 38 26 20 4 8c4 26 12 42 28 50Z" fill="currentColor"/></svg>
+      </div>
+
+      <div class="hero__content reveal">
+        <p class="eyebrow"><span class="eyebrow__dot"></span> Smart care for living rooms</p>
+        <h1 class="hero__title">
+          Grow a home that<br />
+          <em class="hero__em">breathes<span class="hero__underline" aria-hidden="true"></span></em> with you.
+        </h1>
+        <p class="hero__sub">
+          Verdure pairs elegant sensors with thoughtful design, so your monstera, your fern,
+          and your first-ever succulent all get exactly the water, light, and love they need.
+        </p>
+        <div class="hero__cta">
+          <a class="btn btn--primary" href="#finder">Match me with a plant</a>
+          <a class="btn btn--ghost" href="#systems">Explore systems<span class="btn__arrow">→</span></a>
+        </div>
+        <dl class="hero__stats">
+          <div><dt data-count="12480">0</dt><dd>plants thriving</dd></div>
+          <div><dt data-count="98" data-suffix="%">0</dt><dd>survival rate</dd></div>
+          <div><dt data-count="31" data-suffix="s">0</dt><dd>setup time</dd></div>
+        </dl>
+      </div>
+
+      <div class="hero__visual reveal" aria-hidden="true">
+        <div class="pot-scene">
+          <svg class="pot-scene__plant" viewBox="0 0 300 340" fill="none">
+            <g class="sway sway--slow">
+              <path d="M150 250C150 190 120 140 60 110c8 70 40 118 90 140Z" fill="var(--leaf-1)"/>
+              <path d="M150 250c0-60 30-110 90-140-8 70-40 118-90 140Z" fill="var(--leaf-2)"/>
+            </g>
+            <g class="sway">
+              <path d="M150 258c0-80-20-150-70-190 2 90 24 158 70 190Z" fill="var(--leaf-3)"/>
+              <path d="M150 258c0-80 20-150 70-190-2 90-24 158-70 190Z" fill="var(--leaf-4)"/>
+              <path d="M150 262V60" stroke="var(--leaf-stem)" stroke-width="5" stroke-linecap="round"/>
+            </g>
+            <path d="M95 252h110l-12 72a14 14 0 0 1-14 12h-58a14 14 0 0 1-14-12l-12-72Z" fill="var(--pot)"/>
+            <rect x="86" y="244" width="128" height="18" rx="9" fill="var(--pot-rim)"/>
+          </svg>
+          <div class="pot-scene__ring pot-scene__ring--1"></div>
+          <div class="pot-scene__ring pot-scene__ring--2"></div>
+          <div class="sensor-chip sensor-chip--moisture">
+            <span class="sensor-chip__pulse"></span>
+            💧 Moisture <strong id="heroMoisture">62%</strong>
+          </div>
+          <div class="sensor-chip sensor-chip--light">
+            ☀️ Light <strong id="heroLight">Bright</strong>
+          </div>
+          <div class="sensor-chip sensor-chip--next">
+            ⏱ Next water <strong>2 days</strong>
+          </div>
+        </div>
+      </div>
+
+      <a class="hero__scroll" href="#systems" aria-label="Scroll to systems">
+        <span class="hero__scroll-dot"></span>
+      </a>
+    </section>
+
+    <!-- ============ MARQUEE ============ -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        <span>Monstera</span><i>✦</i><span>Pothos</span><i>✦</i><span>Snake Plant</span><i>✦</i><span>Fiddle Leaf Fig</span><i>✦</i><span>Calathea</span><i>✦</i><span>Philodendron</span><i>✦</i><span>String of Pearls</span><i>✦</i><span>Boston Fern</span><i>✦</i>
+        <span>Monstera</span><i>✦</i><span>Pothos</span><i>✦</i><span>Snake Plant</span><i>✦</i><span>Fiddle Leaf Fig</span><i>✦</i><span>Calathea</span><i>✦</i><span>Philodendron</span><i>✦</i><span>String of Pearls</span><i>✦</i><span>Boston Fern</span><i>✦</i>
+      </div>
+    </div>
+
+    <!-- ============ SYSTEMS ============ -->
+    <section class="section" id="systems">
+      <div class="section__head reveal">
+        <p class="eyebrow"><span class="eyebrow__dot"></span> The Verdure systems</p>
+        <h2>Three quiet helpers,<br /><em>one flourishing home.</em></h2>
+        <p class="section__sub">Each system works alone or as an ensemble — designed to disappear into your décor and show up in your foliage.</p>
+      </div>
+      <div class="cards">
+        <article class="card tilt reveal">
+          <div class="card__glow" aria-hidden="true"></div>
+          <div class="card__icon">💧</div>
+          <h3>Aqua Loop</h3>
+          <p>A whisper-quiet reservoir that drip-waters up to six pots, tuned per plant. Refill once a month, forget the rest.</p>
+          <ul class="card__list">
+            <li>Per-pot moisture targets</li>
+            <li>30-day reservoir</li>
+            <li>Vacation mode</li>
+          </ul>
+          <span class="card__tag">Best seller</span>
+        </article>
+        <article class="card tilt reveal" style="--delay:.1s">
+          <div class="card__glow" aria-hidden="true"></div>
+          <div class="card__icon">☀️</div>
+          <h3>Lumen Halo</h3>
+          <p>A sculptural grow light that mimics the sun’s arc — warm dawns, bright noons, amber dusks. Your plants keep circadian time.</p>
+          <ul class="card__list">
+            <li>Full-spectrum sunrise curve</li>
+            <li>Auto seasonal adjust</li>
+            <li>Reads as décor, not gear</li>
+          </ul>
+          <span class="card__tag card__tag--new">New</span>
+        </article>
+        <article class="card tilt reveal" style="--delay:.2s">
+          <div class="card__glow" aria-hidden="true"></div>
+          <div class="card__icon">🌱</div>
+          <h3>Terra Sense</h3>
+          <p>A brass-finished soil probe that learns each plant’s rhythm and nudges you — gently — only when something truly needs you.</p>
+          <ul class="card__list">
+            <li>Moisture, light &amp; nutrients</li>
+            <li>One charge per year</li>
+            <li>Calm notifications</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ PLANT FINDER QUIZ ============ -->
+    <section class="section section--tinted" id="finder">
+      <div class="section__head reveal">
+        <p class="eyebrow"><span class="eyebrow__dot"></span> Plant finder</p>
+        <h2>Answer three questions,<br /><em>meet your plant.</em></h2>
+      </div>
+
+      <div class="finder reveal">
+        <div class="finder__progress"><div class="finder__bar" id="finderBar"></div></div>
+
+        <div class="finder__step is-active" data-step="0">
+          <h3 class="finder__q">How much light does your space get?</h3>
+          <div class="finder__options">
+            <button class="option" data-key="light" data-value="low"><span class="option__emoji">🌑</span><strong>Low light</strong><small>North windows, cozy corners</small></button>
+            <button class="option" data-key="light" data-value="medium"><span class="option__emoji">⛅</span><strong>Medium</strong><small>Bright, no direct sun</small></button>
+            <button class="option" data-key="light" data-value="bright"><span class="option__emoji">☀️</span><strong>Bright</strong><small>Sunbeams most of the day</small></button>
+          </div>
+        </div>
+
+        <div class="finder__step" data-step="1">
+          <h3 class="finder__q">How much care can you give?</h3>
+          <div class="finder__options">
+            <button class="option" data-key="care" data-value="low"><span class="option__emoji">😴</span><strong>Set &amp; forget</strong><small>I travel, I forget, I nap</small></button>
+            <button class="option" data-key="care" data-value="medium"><span class="option__emoji">🙂</span><strong>Weekly check-ins</strong><small>A ritual, not a chore</small></button>
+            <button class="option" data-key="care" data-value="high"><span class="option__emoji">🤲</span><strong>Devoted</strong><small>Misting is my meditation</small></button>
+          </div>
+        </div>
+
+        <div class="finder__step" data-step="2">
+          <h3 class="finder__q">Any furry roommates?</h3>
+          <div class="finder__options">
+            <button class="option" data-key="pets" data-value="yes"><span class="option__emoji">🐾</span><strong>Yes</strong><small>Pet-safe plants only</small></button>
+            <button class="option" data-key="pets" data-value="no"><span class="option__emoji">🚫</span><strong>No pets</strong><small>Anything goes</small></button>
+          </div>
+        </div>
+
+        <div class="finder__step finder__result" data-step="3">
+          <div class="finder__match" id="finderMatch"></div>
+          <button class="btn btn--ghost" id="finderRestart">↺ Start over</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CATALOG ============ -->
+    <section class="section" id="catalog">
+      <div class="section__head reveal">
+        <p class="eyebrow"><span class="eyebrow__dot"></span> The collection</p>
+        <h2>Browse the <em>green library.</em></h2>
+      </div>
+      <div class="filters reveal" role="tablist" aria-label="Filter plants">
+        <button class="chip is-active" data-filter="all">All plants</button>
+        <button class="chip" data-filter="easy">Easy care</button>
+        <button class="chip" data-filter="low-light">Low light</button>
+        <button class="chip" data-filter="pet-safe">Pet safe</button>
+        <button class="chip" data-filter="statement">Statement</button>
+      </div>
+      <div class="catalog reveal" id="catalogGrid"></div>
+    </section>
+
+    <!-- ============ LIVE DASHBOARD ============ -->
+    <section class="section section--tinted" id="dashboard">
+      <div class="section__head reveal">
+        <p class="eyebrow"><span class="eyebrow__dot"></span> Live care, simulated</p>
+        <h2>Feel what your plant <em>feels.</em></h2>
+        <p class="section__sub">Drag the sliders — the Verdure dial responds the way Terra Sense does at home.</p>
+      </div>
+
+      <div class="dash reveal">
+        <div class="dash__gauge">
+          <svg viewBox="0 0 220 220" class="gauge">
+            <circle cx="110" cy="110" r="92" class="gauge__track"/>
+            <circle cx="110" cy="110" r="92" class="gauge__fill" id="gaugeFill"/>
+          </svg>
+          <div class="gauge__center">
+            <span class="gauge__emoji" id="gaugeEmoji">🌿</span>
+            <strong class="gauge__score" id="gaugeScore">100</strong>
+            <span class="gauge__label">plant happiness</span>
+          </div>
+        </div>
+        <div class="dash__controls">
+          <div class="control">
+            <div class="control__head"><label for="ctlMoisture">💧 Soil moisture</label><output id="outMoisture">55%</output></div>
+            <input type="range" id="ctlMoisture" min="0" max="100" value="55" />
+            <div class="control__scale"><span>Parched</span><span>Perfect</span><span>Swampy</span></div>
+          </div>
+          <div class="control">
+            <div class="control__head"><label for="ctlLight">☀️ Light exposure</label><output id="outLight">60%</output></div>
+            <input type="range" id="ctlLight" min="0" max="100" value="60" />
+            <div class="control__scale"><span>Cave</span><span>Dappled</span><span>Desert</span></div>
+          </div>
+          <div class="control">
+            <div class="control__head"><label for="ctlHumidity">🌫 Humidity</label><output id="outHumidity">50%</output></div>
+            <input type="range" id="ctlHumidity" min="0" max="100" value="50" />
+            <div class="control__scale"><span>Arid</span><span>Comfy</span><span>Rainforest</span></div>
+          </div>
+          <p class="dash__advice" id="dashAdvice">Perfect balance — your plant is humming. 🎶</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CALCULATOR ============ -->
+    <section class="section" id="calculator">
+      <div class="section__head reveal">
+        <p class="eyebrow"><span class="eyebrow__dot"></span> Watering calculator</p>
+        <h2>How thirsty is <em>your</em> plant?</h2>
+      </div>
+      <div class="calc reveal">
+        <div class="calc__form">
+          <label class="calc__field">
+            <span>Plant type</span>
+            <select id="calcPlant">
+              <option value="succulent">Succulent / Cactus</option>
+              <option value="tropical" selected>Tropical (Monstera, Pothos…)</option>
+              <option value="fern">Fern / Calathea</option>
+              <option value="herb">Herbs</option>
+            </select>
+          </label>
+          <label class="calc__field">
+            <span>Pot diameter</span>
+            <select id="calcPot">
+              <option value="small">Small · under 15 cm</option>
+              <option value="medium" selected>Medium · 15–25 cm</option>
+              <option value="large">Large · over 25 cm</option>
+            </select>
+          </label>
+          <label class="calc__field">
+            <span>Season</span>
+            <select id="calcSeason">
+              <option value="summer" selected>Growing season (spring/summer)</option>
+              <option value="winter">Dormant season (fall/winter)</option>
+            </select>
+          </label>
+        </div>
+        <div class="calc__result" id="calcResult" aria-live="polite">
+          <div class="calc__drops" id="calcDrops"></div>
+          <p class="calc__text" id="calcText"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TESTIMONIALS ============ -->
+    <section class="section section--tinted" id="voices">
+      <div class="section__head reveal">
+        <p class="eyebrow"><span class="eyebrow__dot"></span> Kind words</p>
+        <h2>From homes that <em>went green.</em></h2>
+      </div>
+      <div class="quotes reveal" id="quotes">
+        <figure class="quote is-active">
+          <blockquote>“I killed four pothos before Verdure. The fifth one has vines across my bookshelf now. I feel like a wizard.”</blockquote>
+          <figcaption><strong>Maya R.</strong> · Portland, with Aqua Loop</figcaption>
+        </figure>
+        <figure class="quote">
+          <blockquote>“The Lumen Halo is the prettiest object in my apartment, and my fiddle leaf fig finally forgave my north-facing windows.”</blockquote>
+          <figcaption><strong>Daniel K.</strong> · Chicago, with Lumen Halo</figcaption>
+        </figure>
+        <figure class="quote">
+          <blockquote>“Terra Sense pinged me exactly twice last month. Both times it was right. My calathea has never looked this smug.”</blockquote>
+          <figcaption><strong>Priya S.</strong> · Austin, with Terra Sense</figcaption>
+        </figure>
+        <div class="quotes__dots" role="tablist" aria-label="Testimonials">
+          <button class="quotes__dot is-active" aria-label="Quote 1"></button>
+          <button class="quotes__dot" aria-label="Quote 2"></button>
+          <button class="quotes__dot" aria-label="Quote 3"></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CTA ============ -->
+    <section class="section cta reveal">
+      <div class="cta__card">
+        <div class="cta__leaves" aria-hidden="true">🌿</div>
+        <h2>Ready to grow something?</h2>
+        <p>Join the newsletter — one thoughtful plant-care letter a month, no weeds.</p>
+        <form class="cta__form" id="ctaForm">
+          <input type="email" placeholder="you@example.com" required aria-label="Email address" />
+          <button class="btn btn--primary" type="submit">Plant me in</button>
+        </form>
+        <p class="cta__done" id="ctaDone" hidden>🌱 Welcome to the garden — check your inbox.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer__inner">
+      <a class="nav__brand" href="#top">
+        <span class="nav__logo" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none"><path d="M16 28c0-9 2-16 12-20-1 10-4 17-12 20Z" fill="currentColor" opacity=".85"/><path d="M16 28C16 20 14 12 4 8c1 10 4 16 12 20Z" fill="currentColor"/><path d="M16 29V14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        Verdure
+      </a>
+      <p>Grown with patience. © <span id="year"></span> Verdure Home Plant Systems.</p>
+      <nav class="footer__links" aria-label="Footer">
+        <a href="#systems">Systems</a>
+        <a href="#catalog">Catalog</a>
+        <a href="#finder">Finder</a>
+      </nav>
+    </div>
+  </footer>
+
+  <div class="modal" id="plantModal" hidden>
+    <div class="modal__backdrop" data-close></div>
+    <div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button class="modal__close" data-close aria-label="Close">✕</button>
+      <div class="modal__body" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -610,7 +610,6 @@
   const aiPanel = $("#aiPanel");
   const aiError = $("#aiError");
   const aiBusy = $("#aiBusy");
-  const getAiKey = () => { try { return localStorage.getItem("tpc-gemini-key") || ""; } catch { return ""; } };
 
   const baseAsJpeg = () => {
     // original photo only (no stickers/selection), capped for upload size
@@ -621,6 +620,127 @@
     off.getContext("2d").drawImage(baseImg, 0, 0, off.width, off.height);
     return off.toDataURL("image/jpeg", 0.87).split(",")[1];
   };
+  const b64ToBlob = (b64, type) => {
+    const bytes = atob(b64);
+    const arr = new Uint8Array(bytes.length);
+    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
+    return new Blob([arr], { type });
+  };
+
+  // each generate(key) resolves to an image src (data: or blob: URL)
+  const generateGemini = async (key) => {
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${encodeURIComponent(key)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { inlineData: { mimeType: "image/jpeg", data: baseAsJpeg() } },
+              { text: AI_PROMPT },
+            ],
+          }],
+        }),
+      }
+    );
+    if (!res.ok) {
+      const detail = await res.json().catch(() => null);
+      const reason = detail?.error?.message || `HTTP ${res.status}`;
+      if (res.status === 400 || res.status === 403) {
+        throw Object.assign(new Error(`That key was rejected (${reason}). Please paste a valid Gemini API key.`), { badKey: true });
+      }
+      if (res.status === 429) throw new Error("The free quota for this key is used up right now — try again in a minute.");
+      throw new Error(`The AI service returned an error: ${reason}`);
+    }
+    const data = await res.json();
+    const parts = data?.candidates?.[0]?.content?.parts || [];
+    const imgPart = parts.find((p) => p.inlineData?.data || p.inline_data?.data);
+    if (!imgPart) {
+      const text = parts.find((p) => p.text)?.text;
+      throw new Error(text ? `The model replied without an image: ${text.slice(0, 140)}` : "The model returned no image — please try again.");
+    }
+    const inline = imgPart.inlineData || imgPart.inline_data;
+    return `data:${inline.mimeType || inline.mime_type || "image/png"};base64,${inline.data}`;
+  };
+
+  const HF_CLIENT_URL = "https://cdn.jsdelivr.net/npm/@huggingface/inference@4/+esm";
+  const HF_MODEL = "Qwen/Qwen-Image-Edit";
+  const generateHf = async (key) => {
+    let InferenceClient;
+    try {
+      ({ InferenceClient } = await import(HF_CLIENT_URL));
+    } catch {
+      throw new Error("Could not load the Hugging Face client — check your connection and try again.");
+    }
+    try {
+      const client = new InferenceClient(key);
+      const blob = await client.imageToImage({
+        provider: "auto",
+        model: HF_MODEL,
+        inputs: b64ToBlob(baseAsJpeg(), "image/jpeg"),
+        parameters: { prompt: AI_PROMPT },
+      });
+      return URL.createObjectURL(blob);
+    } catch (err) {
+      const msg = String(err?.message || err);
+      if (/401|invalid|credential|unauthorized/i.test(msg)) {
+        throw Object.assign(new Error("That token was rejected. Paste a valid Hugging Face token with 'Inference Providers' permission."), { badKey: true });
+      }
+      if (/402|credit|quota|exceeded/i.test(msg)) {
+        throw new Error("This Hugging Face account is out of free inference credits for now — try again later or add billing on hf.co.");
+      }
+      throw new Error(`Hugging Face returned an error: ${msg.slice(0, 160)}`);
+    }
+  };
+
+  const AI_PROVIDERS = {
+    gemini: {
+      label: "Google Gemini",
+      keyName: "tpc-gemini-key",
+      placeholder: "Paste your Gemini API key",
+      link: "https://aistudio.google.com/apikey",
+      linkText: "aistudio.google.com/apikey",
+      generate: generateGemini,
+    },
+    hf: {
+      label: "Hugging Face",
+      keyName: "tpc-hf-key",
+      placeholder: "Paste your Hugging Face token (hf_…)",
+      link: "https://huggingface.co/settings/tokens",
+      linkText: "huggingface.co/settings/tokens",
+      generate: generateHf,
+    },
+  };
+  let aiProvider = (() => {
+    try { return localStorage.getItem("tpc-ai-provider") || "gemini"; } catch { return "gemini"; }
+  })();
+  if (!AI_PROVIDERS[aiProvider]) aiProvider = "gemini";
+
+  const getAiKey = () => {
+    try { return localStorage.getItem(AI_PROVIDERS[aiProvider].keyName) || ""; } catch { return ""; }
+  };
+  const syncProviderUI = () => {
+    const p = AI_PROVIDERS[aiProvider];
+    $$('input[name="aiProvider"]').forEach((r) => { r.checked = r.value === aiProvider; });
+    $("#aiKeyInput").placeholder = p.placeholder;
+    const link = $("#aiKeyLink");
+    link.href = p.link;
+    link.textContent = p.linkText;
+    $("#aiStep1").firstChild.textContent = aiProvider === "hf"
+      ? "Get a free token (with “Inference Providers” permission) at "
+      : "Get a free key at ";
+  };
+  $$('input[name="aiProvider"]').forEach((r) =>
+    r.addEventListener("change", () => {
+      aiProvider = r.value;
+      try { localStorage.setItem("tpc-ai-provider", aiProvider); } catch { /* ignore */ }
+      aiError.hidden = true;
+      $("#aiKeyInput").value = "";
+      syncProviderUI();
+    })
+  );
+  syncProviderUI();
 
   const showAiError = (msg) => {
     aiError.textContent = msg;
@@ -639,39 +759,7 @@
     aiPanel.hidden = true;
     aiBusy.hidden = false;
     try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${encodeURIComponent(key)}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { inlineData: { mimeType: "image/jpeg", data: baseAsJpeg() } },
-                { text: AI_PROMPT },
-              ],
-            }],
-          }),
-        }
-      );
-      if (!res.ok) {
-        const detail = await res.json().catch(() => null);
-        const reason = detail?.error?.message || `HTTP ${res.status}`;
-        if (res.status === 400 || res.status === 403) {
-          try { localStorage.removeItem("tpc-gemini-key"); } catch { /* ignore */ }
-          throw new Error(`That key was rejected (${reason}). Please paste a valid Gemini API key.`);
-        }
-        if (res.status === 429) throw new Error("The free quota for this key is used up right now — try again in a minute.");
-        throw new Error(`The AI service returned an error: ${reason}`);
-      }
-      const data = await res.json();
-      const parts = data?.candidates?.[0]?.content?.parts || [];
-      const imgPart = parts.find((p) => p.inlineData?.data || p.inline_data?.data);
-      if (!imgPart) {
-        const text = parts.find((p) => p.text)?.text;
-        throw new Error(text ? `The model replied without an image: ${text.slice(0, 140)}` : "The model returned no image — please try again.");
-      }
-      const inline = imgPart.inlineData || imgPart.inline_data;
+      const src = await AI_PROVIDERS[aiProvider].generate(key);
       const result = new Image();
       result.onload = () => {
         aiImg = result;
@@ -684,8 +772,11 @@
         render();
       };
       result.onerror = () => { aiBusy.hidden = true; showAiError("Could not decode the AI image — please try again."); };
-      result.src = `data:${inline.mimeType || inline.mime_type || "image/png"};base64,${inline.data}`;
+      result.src = src;
     } catch (err) {
+      if (err?.badKey) {
+        try { localStorage.removeItem(AI_PROVIDERS[aiProvider].keyName); } catch { /* ignore */ }
+      }
       aiBusy.hidden = true;
       showAiError(err?.message || "Something went wrong talking to the AI service.");
     }
@@ -694,8 +785,8 @@
   $("#aiBtn").addEventListener("click", aiBeautify);
   $("#aiGoBtn").addEventListener("click", () => {
     const key = $("#aiKeyInput").value.trim();
-    if (!key) { showAiError("Paste your Gemini API key first."); return; }
-    try { localStorage.setItem("tpc-gemini-key", key); } catch { /* private mode: works for this page view only */ }
+    if (!key) { showAiError(`Paste your ${AI_PROVIDERS[aiProvider].label} key first.`); return; }
+    try { localStorage.setItem(AI_PROVIDERS[aiProvider].keyName, key); } catch { /* private mode: works for this page view only */ }
     aiBeautify();
   });
   $("#aiCancelBtn").addEventListener("click", () => { aiPanel.hidden = true; });

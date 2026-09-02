@@ -319,7 +319,8 @@
           <strong>AI Beautify</strong> for a photorealistic, magazine-style makeover, or
           <strong>Sticker preview</strong> for an instant illustrated one. Slide to compare
           before &amp; after and download the result. Photos stay in your browser unless you
-          choose AI Beautify, which sends the photo to Google's Gemini API using your own key.
+          choose AI Beautify, which sends the photo to the AI provider you pick — Google
+          Gemini or Hugging Face — using your own key.
         </p>
       </div>
 
@@ -351,13 +352,16 @@
           <div class="ai-panel" id="aiPanel" hidden>
             <h4>🪄 Photorealistic AI Beautify</h4>
             <p>
-              This mode sends your photo to Google's <strong>Gemini</strong> image model, which
-              repaints it with realistic plants — matching your room's lighting and perspective.
-              It needs your own (free) Google AI Studio key, used directly from your browser and
-              stored only on this device.
+              This mode sends your photo to an AI image model that repaints it with realistic
+              plants — matching your room's lighting and perspective. It needs your own free API
+              key, used directly from your browser and stored only on this device.
             </p>
+            <div class="ai-panel__providers" role="radiogroup" aria-label="AI provider">
+              <label><input type="radio" name="aiProvider" value="gemini" checked /> Google Gemini</label>
+              <label><input type="radio" name="aiProvider" value="hf" /> Hugging Face</label>
+            </div>
             <ol>
-              <li>Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/apikey</a></li>
+              <li id="aiStep1">Get a free key at <a id="aiKeyLink" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/apikey</a></li>
               <li>Paste it below and hit Generate</li>
             </ol>
             <div class="ai-panel__row">

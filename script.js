@@ -408,7 +408,7 @@
   const LIGHT_INFO = {
     low: {
       label: "Low light",
-      desc: "low natural light",
+      desc: "low",
       pool: [
         "ZZ plant", "snake plant", "golden pothos", "marble queen pothos",
         "parlor palm", "cast iron plant", "Chinese evergreen (aglaonema)",
@@ -418,7 +418,7 @@
     },
     medium: {
       label: "Medium, indirect light",
-      desc: "medium indirect light",
+      desc: "medium indirect",
       pool: [
         "calathea orbifolia", "rattlesnake calathea", "boston fern",
         "spider plant", "watermelon peperomia", "monstera adansonii",
@@ -428,7 +428,7 @@
     },
     bright: {
       label: "Bright light",
-      desc: "bright natural light",
+      desc: "bright",
       pool: [
         "monstera deliciosa", "fiddle-leaf fig", "bird of paradise",
         "burgundy rubber plant", "croton with colourful leaves",
@@ -483,17 +483,6 @@
     if (!baseImg) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(aiImg || baseImg, 0, 0, canvas.width, canvas.height);
-    if (placed.length && !aiImg) {
-      // subtle warm-light grade so the plantscape feels sunlit
-      const g = ctx.createRadialGradient(
-        canvas.width * 0.5, canvas.height * 0.2, 0,
-        canvas.width * 0.5, canvas.height * 0.55, canvas.width * 0.75
-      );
-      g.addColorStop(0, "rgba(255, 236, 200, 0.10)");
-      g.addColorStop(1, "rgba(30, 60, 40, 0.06)");
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
     for (const p of placed) {
       if (!p.s.img.complete) continue; // redrawn by the sticker's onload
       const b = bbox(p);
@@ -525,14 +514,21 @@
     render();
   };
 
+  // canvas always adopts the aspect ratio of whatever image it displays —
+  // AI models can return a different aspect than the upload, and stretching
+  // the result onto the original ratio visibly distorts it
+  const sizeCanvasTo = (img) => {
+    const maxW = 1400;
+    const scale = Math.min(1, maxW / img.naturalWidth);
+    canvas.width = Math.round(img.naturalWidth * scale);
+    canvas.height = Math.round(img.naturalHeight * scale);
+  };
+
   const loadBase = (src) => new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
       baseImg = img;
-      const maxW = 1400;
-      const scale = Math.min(1, maxW / img.naturalWidth);
-      canvas.width = Math.round(img.naturalWidth * scale);
-      canvas.height = Math.round(img.naturalHeight * scale);
+      sizeCanvasTo(img);
       beforeImg.src = src;
       placed = [];
       aiImg = null;
@@ -647,34 +643,29 @@
   /* ---- AI Beautify (Gemini image editing, bring-your-own-key) ---- */
   const AI_MODEL = "gemini-2.5-flash-image";
   const DENSITY_PROMPT = {
-    low: "Add only a few plants — two or three well-chosen specimens — keeping the look minimal and airy.",
-    medium: "Add a balanced, curated amount of plants — roughly four to six — so the space feels green but uncluttered.",
-    high: "Fill the space generously with plants — eight or more, layered at different heights for a lush urban-jungle look — while keeping walkways and furniture usable.",
+    low: "a few (2 or 3) realistic potted plants",
+    medium: "4 to 6 realistic potted plants",
+    high: "8 or more realistic potted plants, layered at different heights",
   };
+  // Kept short and positively phrased: long negative instructions ("never
+  // place on curtains") make edit models attend to those very objects, and
+  // describing the room's lighting makes them re-render the lighting. The
+  // light level only steers species choice; the photo itself is protected.
   const buildAiPrompt = () => {
     const info = LIGHT_INFO[lightLevel];
-    const species = samplePool(info.pool, 6).join(", ");
+    const species = samplePool(info.pool, 5).join(", ");
     return (
-      "You are an expert interior designer and plant stylist. Redecorate this exact photo into a " +
-      "beautiful, plant-filled version of the same space, keeping the room's architecture, walls, " +
-      "windows, flooring, existing furniture, lighting direction and camera angle exactly the same. " +
-      DENSITY_PROMPT[plantDensity] + " " +
-      `The space gets ${info.desc}; choose species that genuinely thrive in it — for example ${species} — ` +
-      "and vary your selection rather than defaulting to the most common houseplants. " +
-      "Mix the foliage deliberately: broad split leaves next to fine ferny fronds, upright architectural " +
-      "spears, trailing vines, and at least one plant with variegated, patterned or colourful foliage, " +
-      "so no two plants look alike in shape, size or colour. " +
-      "Style each plant in a different, room-appropriate pot — vary materials and colours across glazed " +
-      "ceramic in soft neutrals or muted tones, matte white or black, natural terracotta, woven seagrass " +
-      "baskets, concrete and stoneware — no two pots identical, and the whole pot palette in harmony " +
-      "with the room's colours and style. " +
-      "Be strictly practical about placement: a plant may only sit on a surface that really exists and " +
-      "has free space — open floor with clearance, a tabletop, a shelf, a windowsill. Never place a " +
-      "plant on top of curtains or blinds, floating in front of a window, squeezed behind furniture " +
-      "that sits against a wall, or anywhere it would block a doorway, walkway, seat or screen. A " +
-      "hanging plant is allowed only where a ceiling hook near a window would realistically be mounted. " +
-      "Every plant must be at a realistic in-scale size, grounded with a soft, correctly-directed shadow. " +
-      "Photorealistic, magazine-quality interior design photograph."
+      `Add ${DENSITY_PROMPT[plantDensity]} to this photo. ` +
+      "This is a light-touch edit: keep everything else exactly as it is — the architecture, walls, " +
+      "windows, furniture, floor, colours, lighting, exposure and camera angle must stay unchanged. " +
+      `Use varied species suited to ${info.desc} light, for example ${species}. Mix leaf shapes, ` +
+      "sizes and colours, including at least one variegated or colourful variety. " +
+      "Give each plant a different stylish pot — ceramic, terracotta, woven basket, stoneware or " +
+      "matte black — chosen to match the room's palette. " +
+      "Place each plant only where it would truly stand: on open floor, a tabletop, a shelf or a " +
+      "windowsill with free space, at realistic scale, grounded with a soft natural shadow, keeping " +
+      "walkways, seating and views clear. " +
+      "The result should look like a professionally styled photograph of the exact same room."
     );
   };
   const aiPanel = $("#aiPanel");
@@ -845,6 +836,7 @@
       const result = new Image();
       result.onload = () => {
         aiImg = result;
+        sizeCanvasTo(result);
         placed = [];
         setSelected(-1);
         $("#undoAiBtn").hidden = false;
@@ -874,6 +866,9 @@
   $("#aiCancelBtn").addEventListener("click", () => { aiPanel.hidden = true; });
   $("#undoAiBtn").addEventListener("click", () => {
     aiImg = null;
+    sizeCanvasTo(baseImg);
+    placed = [];
+    setSelected(-1);
     $("#undoAiBtn").hidden = true;
     compareRange.value = 0;
     updateCompare();

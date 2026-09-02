@@ -402,23 +402,49 @@
   let lightLevel = "medium";
 
   /* light analysis: mean luminance blended with highlight strength (windows,
-     sky) separates dim corners from bright rooms with dark floors */
+     sky) separates dim corners from bright rooms with dark floors.
+     Each level carries a wide species pool; generations sample from it so
+     suggestions and renders vary instead of repeating the same few plants. */
   const LIGHT_INFO = {
     low: {
       label: "Low light",
-      prompt: "low natural light, so favor shade-tolerant plants such as a ZZ plant, snake plant, golden pothos, and parlor palm",
-      recs: ["ZZ Plant", "Snake Plant", "Golden Pothos", "Parlor Palm"],
+      desc: "low natural light",
+      pool: [
+        "ZZ plant", "snake plant", "golden pothos", "marble queen pothos",
+        "parlor palm", "cast iron plant", "Chinese evergreen (aglaonema)",
+        "red-tinged aglaonema", "peace lily", "heartleaf philodendron",
+        "dracaena", "silver satin scindapsus",
+      ],
     },
     medium: {
       label: "Medium, indirect light",
-      prompt: "medium indirect light, so favor plants that thrive in it such as a calathea, boston fern, spider plant, and peperomia",
-      recs: ["Calathea", "Boston Fern", "Spider Plant", "Peperomia"],
+      desc: "medium indirect light",
+      pool: [
+        "calathea orbifolia", "rattlesnake calathea", "boston fern",
+        "spider plant", "watermelon peperomia", "monstera adansonii",
+        "dieffenbachia", "anthurium with red blooms", "prayer plant",
+        "dracaena marginata", "hoya", "philodendron brasil",
+      ],
     },
     bright: {
       label: "Bright light",
-      prompt: "bright natural light, so favor sun-loving plants such as a monstera, fiddle-leaf fig, echeveria, and string of pearls",
-      recs: ["Monstera", "Fiddle Leaf Fig", "Echeveria", "String of Pearls"],
+      desc: "bright natural light",
+      pool: [
+        "monstera deliciosa", "fiddle-leaf fig", "bird of paradise",
+        "burgundy rubber plant", "croton with colourful leaves",
+        "echeveria and mixed succulents", "string of pearls", "jade plant",
+        "olive tree", "areca palm", "yucca", "alocasia",
+        "ponytail palm", "small citrus tree",
+      ],
     },
+  };
+  const samplePool = (pool, n) => {
+    const copy = [...pool];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy.slice(0, n);
   };
 
   const analyzeLight = (img) => {
@@ -440,8 +466,9 @@
 
   const showLightInsight = () => {
     const info = LIGHT_INFO[lightLevel];
+    const recs = samplePool(info.pool, 4).map((p) => p.replace(/\s*\(.*\)|\s+with .*/g, ""));
     const el = $("#lightInsight");
-    el.innerHTML = `☀️ <strong>Light check: ${info.label}.</strong> Plants that will thrive here: ${info.recs.join(", ")}.`;
+    el.innerHTML = `☀️ <strong>Light check: ${info.label}.</strong> Plants that will thrive here: ${recs.join(", ")}.`;
     el.hidden = false;
   };
 
@@ -624,16 +651,32 @@
     medium: "Add a balanced, curated amount of plants — roughly four to six — so the space feels green but uncluttered.",
     high: "Fill the space generously with plants — eight or more, layered at different heights for a lush urban-jungle look — while keeping walkways and furniture usable.",
   };
-  const buildAiPrompt = () =>
-    "Redecorate this exact photo into a beautiful, plant-filled version of the same space. " +
-    "Keep the room's architecture, walls, windows, flooring, existing furniture, lighting direction " +
-    "and camera angle exactly the same. " +
-    DENSITY_PROMPT[plantDensity] + " " +
-    `The space appears to get ${LIGHT_INFO[lightLevel].prompt}. ` +
-    "Place the plants in natural, tasteful spots — corners, beside furniture, on shelves, trailing or " +
-    "hanging near windows — with correct perspective, soft realistic shadows, and pots that match the " +
-    "room's style. You may add subtle plant-friendly styling like a woven basket or plant stand. " +
-    "Photorealistic, magazine-quality interior design photograph.";
+  const buildAiPrompt = () => {
+    const info = LIGHT_INFO[lightLevel];
+    const species = samplePool(info.pool, 6).join(", ");
+    return (
+      "You are an expert interior designer and plant stylist. Redecorate this exact photo into a " +
+      "beautiful, plant-filled version of the same space, keeping the room's architecture, walls, " +
+      "windows, flooring, existing furniture, lighting direction and camera angle exactly the same. " +
+      DENSITY_PROMPT[plantDensity] + " " +
+      `The space gets ${info.desc}; choose species that genuinely thrive in it — for example ${species} — ` +
+      "and vary your selection rather than defaulting to the most common houseplants. " +
+      "Mix the foliage deliberately: broad split leaves next to fine ferny fronds, upright architectural " +
+      "spears, trailing vines, and at least one plant with variegated, patterned or colourful foliage, " +
+      "so no two plants look alike in shape, size or colour. " +
+      "Style each plant in a different, room-appropriate pot — vary materials and colours across glazed " +
+      "ceramic in soft neutrals or muted tones, matte white or black, natural terracotta, woven seagrass " +
+      "baskets, concrete and stoneware — no two pots identical, and the whole pot palette in harmony " +
+      "with the room's colours and style. " +
+      "Be strictly practical about placement: a plant may only sit on a surface that really exists and " +
+      "has free space — open floor with clearance, a tabletop, a shelf, a windowsill. Never place a " +
+      "plant on top of curtains or blinds, floating in front of a window, squeezed behind furniture " +
+      "that sits against a wall, or anywhere it would block a doorway, walkway, seat or screen. A " +
+      "hanging plant is allowed only where a ceiling hook near a window would realistically be mounted. " +
+      "Every plant must be at a realistic in-scale size, grounded with a soft, correctly-directed shadow. " +
+      "Photorealistic, magazine-quality interior design photograph."
+    );
+  };
   const aiPanel = $("#aiPanel");
   const aiError = $("#aiError");
   const aiBusy = $("#aiBusy");
@@ -692,7 +735,10 @@
   };
 
   const HF_CLIENT_URL = "https://cdn.jsdelivr.net/npm/@huggingface/inference@4/+esm";
-  const HF_MODEL = "Qwen/Qwen-Image-Edit";
+  const HF_DEFAULT_MODEL = "Qwen/Qwen-Image-Edit-2509";
+  const getHfModel = () => {
+    try { return localStorage.getItem("tpc-hf-model") || HF_DEFAULT_MODEL; } catch { return HF_DEFAULT_MODEL; }
+  };
   const generateHf = async (key) => {
     let InferenceClient;
     try {
@@ -700,17 +746,21 @@
     } catch {
       throw new Error("Could not load the Hugging Face client — check your connection and try again.");
     }
+    const model = getHfModel();
     try {
       const client = new InferenceClient(key);
       const blob = await client.imageToImage({
         provider: "auto",
-        model: HF_MODEL,
+        model,
         inputs: b64ToBlob(baseAsJpeg(), "image/jpeg"),
         parameters: { prompt: buildAiPrompt() },
       });
       return URL.createObjectURL(blob);
     } catch (err) {
       const msg = String(err?.message || err);
+      if (/gated|must be authorized|access request|license/i.test(msg)) {
+        throw new Error(`${model} is a gated model — open huggingface.co/${model}, accept its license with your account, then try again (or switch the model to Qwen Image Edit 2509).`);
+      }
       if (/401|invalid|credential|unauthorized/i.test(msg)) {
         throw Object.assign(new Error("That token was rejected. Paste a valid Hugging Face token with 'Inference Providers' permission."), { badKey: true });
       }
@@ -757,7 +807,12 @@
     $("#aiStep1").firstChild.textContent = aiProvider === "hf"
       ? "Get a free token (with “Inference Providers” permission) at "
       : "Get a free key at ";
+    $("#hfModelRow").hidden = aiProvider !== "hf";
+    $("#hfModelSelect").value = getHfModel();
   };
+  $("#hfModelSelect").addEventListener("change", (e) => {
+    try { localStorage.setItem("tpc-hf-model", e.target.value); } catch { /* ignore */ }
+  });
   $$('input[name="aiProvider"]').forEach((r) =>
     r.addEventListener("change", () => {
       aiProvider = r.value;

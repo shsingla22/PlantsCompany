@@ -23,7 +23,7 @@
     <path d="M142 26c-8 12-12 22-16 36"/>
     <path d="M95 2v46"/>
   </g>
-  <path d="M62 210h66l-7 36a10 10 0 0 1-10 8H79a10 10 0 0 1-10-8l-7-36Z" fill="#c96f4a"/>
-  <path d="M62 210h66l-2 11H64l-2-11Z" fill="rgba(0,0,0,.12)"/>
-  <rect x="56" y="202" width="78" height="13" rx="6.5" fill="#b55f3c"/>
+  <path d="M62 210h66l-7 36a10 10 0 0 1-10 8H79a10 10 0 0 1-10-8l-7-36Z" fill="#e9e2d4"/>
+  <path d="M62 210h66l-2 11H64l-2-11Z" fill="rgba(0,0,0,.08)"/>
+  <rect x="56" y="202" width="78" height="13" rx="6.5" fill="#d8cfbd"/>
 </svg>

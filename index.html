@@ -178,6 +178,14 @@
               <label><input type="radio" name="aiProvider" value="gemini" checked /> Google Gemini</label>
               <label><input type="radio" name="aiProvider" value="hf" /> Hugging Face</label>
             </div>
+            <label class="ai-panel__model" id="hfModelRow" hidden>
+              <span>Model</span>
+              <select id="hfModelSelect">
+                <option value="Qwen/Qwen-Image-Edit-2509" selected>Qwen Image Edit 2509 — recommended</option>
+                <option value="black-forest-labs/FLUX.1-Kontext-dev">FLUX.1 Kontext dev — top quality (accept its license on hf.co first)</option>
+                <option value="Qwen/Qwen-Image-Edit">Qwen Image Edit — original</option>
+              </select>
+            </label>
             <ol>
               <li id="aiStep1">Get a free key at <a id="aiKeyLink" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/apikey</a></li>
               <li>Paste it below and hit Generate</li>

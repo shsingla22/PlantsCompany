@@ -641,24 +641,26 @@
   dropzone.addEventListener("drop", (e) => readFile(e.dataTransfer.files[0]));
 
   /* ---- AI Beautify (Gemini image editing, bring-your-own-key) ---- */
-  const AI_MODEL = "gemini-2.5-flash-image";
+  const GEMINI_DEFAULT_MODEL = "gemini-3.1-flash-image";
+  const GEMINI_FALLBACK_MODEL = "gemini-2.5-flash-image";
   const DENSITY_PROMPT = {
     low: "a few (2 or 3) realistic potted plants",
     medium: "4 to 6 realistic potted plants",
     high: "8 or more realistic potted plants, layered at different heights",
   };
   // Kept short and positively phrased: long negative instructions ("never
-  // place on curtains") make edit models attend to those very objects, and
-  // describing the room's lighting makes them re-render the lighting. The
-  // light level only steers species choice; the photo itself is protected.
+  // place on curtains") make edit models attend to those very objects. The
+  // prompt never describes the scene's light; its one mention of lighting
+  // is the instruction to leave it unchanged. Species are sampled across
+  // the whole palette each run so results vary.
+  const ALL_SPECIES = [...LIGHT_INFO.low.pool, ...LIGHT_INFO.medium.pool, ...LIGHT_INFO.bright.pool];
   const buildAiPrompt = () => {
-    const info = LIGHT_INFO[lightLevel];
-    const species = samplePool(info.pool, 5).join(", ");
+    const species = samplePool(ALL_SPECIES, 5).join(", ");
     return (
       `Add ${DENSITY_PROMPT[plantDensity]} to this photo. ` +
-      "This is a light-touch edit: keep everything else exactly as it is — the architecture, walls, " +
+      "This is a small, careful edit: keep everything else exactly as it is — the architecture, walls, " +
       "windows, furniture, floor, colours, lighting, exposure and camera angle must stay unchanged. " +
-      `Use varied species suited to ${info.desc} light, for example ${species}. Mix leaf shapes, ` +
+      `Use varied species, for example ${species}. Mix leaf shapes, ` +
       "sizes and colours, including at least one variegated or colourful variety. " +
       "Give each plant a different stylish pot — ceramic, terracotta, woven basket, stoneware or " +
       "matte black — chosen to match the room's palette. " +
@@ -688,10 +690,14 @@
     return new Blob([arr], { type });
   };
 
+  const getGeminiModel = () => {
+    try { return localStorage.getItem("tpc-gemini-model") || GEMINI_DEFAULT_MODEL; } catch { return GEMINI_DEFAULT_MODEL; }
+  };
+
   // each generate(key) resolves to an image src (data: or blob: URL)
   const generateGemini = async (key) => {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${encodeURIComponent(key)}`,
+    const call = (model) => fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -705,6 +711,11 @@
         }),
       }
     );
+    let res = await call(getGeminiModel());
+    if (res.status === 404 && getGeminiModel() !== GEMINI_FALLBACK_MODEL) {
+      // chosen model not available on this key/region — fall back
+      res = await call(GEMINI_FALLBACK_MODEL);
+    }
     if (!res.ok) {
       const detail = await res.json().catch(() => null);
       const reason = detail?.error?.message || `HTTP ${res.status}`;
@@ -726,7 +737,7 @@
   };
 
   const HF_CLIENT_URL = "https://cdn.jsdelivr.net/npm/@huggingface/inference@4/+esm";
-  const HF_DEFAULT_MODEL = "Qwen/Qwen-Image-Edit-2509";
+  const HF_DEFAULT_MODEL = "black-forest-labs/FLUX.1-Kontext-dev";
   const getHfModel = () => {
     try { return localStorage.getItem("tpc-hf-model") || HF_DEFAULT_MODEL; } catch { return HF_DEFAULT_MODEL; }
   };
@@ -800,9 +811,14 @@
       : "Get a free key at ";
     $("#hfModelRow").hidden = aiProvider !== "hf";
     $("#hfModelSelect").value = getHfModel();
+    $("#geminiModelRow").hidden = aiProvider !== "gemini";
+    $("#geminiModelSelect").value = getGeminiModel();
   };
   $("#hfModelSelect").addEventListener("change", (e) => {
     try { localStorage.setItem("tpc-hf-model", e.target.value); } catch { /* ignore */ }
+  });
+  $("#geminiModelSelect").addEventListener("change", (e) => {
+    try { localStorage.setItem("tpc-gemini-model", e.target.value); } catch { /* ignore */ }
   });
   $$('input[name="aiProvider"]').forEach((r) =>
     r.addEventListener("change", () => {

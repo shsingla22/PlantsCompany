@@ -18,12 +18,16 @@ home plant care systems (watering, light, and soil sensing).
   photo of your room or yard, or pick an example. The studio reads the light
   level from the photo itself and recommends plants that will thrive there,
   you pick a plant density (a few / balanced / jungle), and **Beautify**
-  repaints the space photorealistically via Google Gemini or Hugging Face
-  (Qwen-Image-Edit-2509 by default, with FLUX.1 Kontext dev selectable) —
-  bring your own free key, entered in the browser and stored locally. The
-  AI prompt is an interior-designer brief: light level, plant density, a
-  randomized species palette for variety, mixed foliage shapes and colours,
-  varied room-matched pots, and strict placement practicality rules.
+  repaints the space photorealistically via Google Gemini (Nano Banana 2 /
+  Gemini 3.1 Flash Image by default, Nano Banana Pro selectable, automatic
+  fallback to the legacy model) or Hugging Face (FLUX.1 Kontext dev by
+  default, Qwen Image Edit selectable) — bring your own free key, entered
+  in the browser and stored locally. The AI prompt is a concise stylist
+  brief: plant density, a randomized species palette for variety, mixed
+  foliage shapes and colours, varied room-matched pots, and placement
+  practicality — while instructing the model to leave the photo's
+  lighting, colours and composition untouched. The light reading is used
+  for the on-page plant recommendations only.
   Without a key, an instant illustrated preview is offered instead. Drag
   plants around, compare before/after with a slider, and download the
   result. Photos stay in the browser except when AI Beautify is used.

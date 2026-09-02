@@ -178,11 +178,19 @@
               <label><input type="radio" name="aiProvider" value="gemini" checked /> Google Gemini</label>
               <label><input type="radio" name="aiProvider" value="hf" /> Hugging Face</label>
             </div>
+            <label class="ai-panel__model" id="geminiModelRow" hidden>
+              <span>Model</span>
+              <select id="geminiModelSelect">
+                <option value="gemini-3.1-flash-image" selected>Nano Banana 2 (Gemini 3.1 Flash Image) — recommended</option>
+                <option value="gemini-3-pro-image">Nano Banana Pro (Gemini 3 Pro Image) — highest quality</option>
+                <option value="gemini-2.5-flash-image">Nano Banana (Gemini 2.5 Flash Image) — legacy</option>
+              </select>
+            </label>
             <label class="ai-panel__model" id="hfModelRow" hidden>
               <span>Model</span>
               <select id="hfModelSelect">
-                <option value="Qwen/Qwen-Image-Edit-2509" selected>Qwen Image Edit 2509 — recommended</option>
-                <option value="black-forest-labs/FLUX.1-Kontext-dev">FLUX.1 Kontext dev — top quality (accept its license on hf.co first)</option>
+                <option value="black-forest-labs/FLUX.1-Kontext-dev" selected>FLUX.1 Kontext dev — best quality (accept its license on hf.co once)</option>
+                <option value="Qwen/Qwen-Image-Edit-2509">Qwen Image Edit 2509 — no setup needed</option>
                 <option value="Qwen/Qwen-Image-Edit">Qwen Image Edit — original</option>
               </select>
             </label>

@@ -132,8 +132,9 @@
           Upload a photo of any room, balcony, or backyard — or pick an example. We read the
           light in your photo and recommend plants that will thrive there, you choose how leafy
           to go, and <strong>Beautify</strong> repaints the space photorealistically with AI
-          (bring your free Gemini or Hugging Face key — no key gets an instant illustrated
-          preview instead). Slide to compare before &amp; after and download the result.
+          (bring your own Google Gemini, OpenAI/ChatGPT, or Hugging Face key — no key gets an
+          instant illustrated preview instead). Slide to compare before &amp; after and download
+          the result.
         </p>
       </div>
 
@@ -176,8 +177,33 @@
             </p>
             <div class="ai-panel__providers" role="radiogroup" aria-label="AI provider">
               <label><input type="radio" name="aiProvider" value="gemini" checked /> Google Gemini</label>
+              <label><input type="radio" name="aiProvider" value="openai" /> OpenAI (ChatGPT)</label>
               <label><input type="radio" name="aiProvider" value="hf" /> Hugging Face</label>
             </div>
+            <p class="ai-panel__provider-note" id="providerNote"></p>
+            <label class="ai-panel__model" id="geminiModelRow" hidden>
+              <span>Model</span>
+              <select id="geminiModelSelect">
+                <option value="gemini-3.1-flash-image" selected>Nano Banana 2 (Gemini 3.1 Flash Image) — recommended</option>
+                <option value="gemini-3-pro-image">Nano Banana Pro (Gemini 3 Pro Image) — highest quality</option>
+                <option value="gemini-2.5-flash-image">Nano Banana (Gemini 2.5 Flash Image) — legacy</option>
+              </select>
+            </label>
+            <label class="ai-panel__model" id="hfModelRow" hidden>
+              <span>Model</span>
+              <select id="hfModelSelect">
+                <option value="black-forest-labs/FLUX.1-Kontext-dev" selected>FLUX.1 Kontext dev — best quality (accept its license on hf.co once)</option>
+                <option value="Qwen/Qwen-Image-Edit-2509">Qwen Image Edit 2509 — no setup needed</option>
+                <option value="Qwen/Qwen-Image-Edit">Qwen Image Edit — original</option>
+              </select>
+            </label>
+            <label class="ai-panel__model" id="openaiModelRow" hidden>
+              <span>Model</span>
+              <select id="openaiModelSelect">
+                <option value="gpt-image-1" selected>GPT Image 1 — the ChatGPT image model</option>
+                <option value="gpt-image-1-mini">GPT Image 1 mini — faster and cheaper</option>
+              </select>
+            </label>
             <ol>
               <li id="aiStep1">Get a free key at <a id="aiKeyLink" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/apikey</a></li>
               <li>Paste it below and hit Generate</li>

@@ -402,23 +402,49 @@
   let lightLevel = "medium";
 
   /* light analysis: mean luminance blended with highlight strength (windows,
-     sky) separates dim corners from bright rooms with dark floors */
+     sky) separates dim corners from bright rooms with dark floors.
+     Each level carries a wide species pool; generations sample from it so
+     suggestions and renders vary instead of repeating the same few plants. */
   const LIGHT_INFO = {
     low: {
       label: "Low light",
-      prompt: "low natural light, so favor shade-tolerant plants such as a ZZ plant, snake plant, golden pothos, and parlor palm",
-      recs: ["ZZ Plant", "Snake Plant", "Golden Pothos", "Parlor Palm"],
+      desc: "low",
+      pool: [
+        "ZZ plant", "snake plant", "golden pothos", "marble queen pothos",
+        "parlor palm", "cast iron plant", "Chinese evergreen (aglaonema)",
+        "red-tinged aglaonema", "peace lily", "heartleaf philodendron",
+        "dracaena", "silver satin scindapsus",
+      ],
     },
     medium: {
       label: "Medium, indirect light",
-      prompt: "medium indirect light, so favor plants that thrive in it such as a calathea, boston fern, spider plant, and peperomia",
-      recs: ["Calathea", "Boston Fern", "Spider Plant", "Peperomia"],
+      desc: "medium indirect",
+      pool: [
+        "calathea orbifolia", "rattlesnake calathea", "boston fern",
+        "spider plant", "watermelon peperomia", "monstera adansonii",
+        "dieffenbachia", "anthurium with red blooms", "prayer plant",
+        "dracaena marginata", "hoya", "philodendron brasil",
+      ],
     },
     bright: {
       label: "Bright light",
-      prompt: "bright natural light, so favor sun-loving plants such as a monstera, fiddle-leaf fig, echeveria, and string of pearls",
-      recs: ["Monstera", "Fiddle Leaf Fig", "Echeveria", "String of Pearls"],
+      desc: "bright",
+      pool: [
+        "monstera deliciosa", "fiddle-leaf fig", "bird of paradise",
+        "burgundy rubber plant", "croton with colourful leaves",
+        "echeveria and mixed succulents", "string of pearls", "jade plant",
+        "olive tree", "areca palm", "yucca", "alocasia",
+        "ponytail palm", "small citrus tree",
+      ],
     },
+  };
+  const samplePool = (pool, n) => {
+    const copy = [...pool];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy.slice(0, n);
   };
 
   const analyzeLight = (img) => {
@@ -440,8 +466,9 @@
 
   const showLightInsight = () => {
     const info = LIGHT_INFO[lightLevel];
+    const recs = samplePool(info.pool, 4).map((p) => p.replace(/\s*\(.*\)|\s+with .*/g, ""));
     const el = $("#lightInsight");
-    el.innerHTML = `☀️ <strong>Light check: ${info.label}.</strong> Plants that will thrive here: ${info.recs.join(", ")}.`;
+    el.innerHTML = `☀️ <strong>Light check: ${info.label}.</strong> Plants that will thrive here: ${recs.join(", ")}.`;
     el.hidden = false;
   };
 
@@ -456,17 +483,6 @@
     if (!baseImg) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(aiImg || baseImg, 0, 0, canvas.width, canvas.height);
-    if (placed.length && !aiImg) {
-      // subtle warm-light grade so the plantscape feels sunlit
-      const g = ctx.createRadialGradient(
-        canvas.width * 0.5, canvas.height * 0.2, 0,
-        canvas.width * 0.5, canvas.height * 0.55, canvas.width * 0.75
-      );
-      g.addColorStop(0, "rgba(255, 236, 200, 0.10)");
-      g.addColorStop(1, "rgba(30, 60, 40, 0.06)");
-      ctx.fillStyle = g;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
     for (const p of placed) {
       if (!p.s.img.complete) continue; // redrawn by the sticker's onload
       const b = bbox(p);
@@ -498,14 +514,21 @@
     render();
   };
 
+  // canvas always adopts the aspect ratio of whatever image it displays —
+  // AI models can return a different aspect than the upload, and stretching
+  // the result onto the original ratio visibly distorts it
+  const sizeCanvasTo = (img) => {
+    const maxW = 1400;
+    const scale = Math.min(1, maxW / img.naturalWidth);
+    canvas.width = Math.round(img.naturalWidth * scale);
+    canvas.height = Math.round(img.naturalHeight * scale);
+  };
+
   const loadBase = (src) => new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
       baseImg = img;
-      const maxW = 1400;
-      const scale = Math.min(1, maxW / img.naturalWidth);
-      canvas.width = Math.round(img.naturalWidth * scale);
-      canvas.height = Math.round(img.naturalHeight * scale);
+      sizeCanvasTo(img);
       beforeImg.src = src;
       placed = [];
       aiImg = null;
@@ -618,22 +641,35 @@
   dropzone.addEventListener("drop", (e) => readFile(e.dataTransfer.files[0]));
 
   /* ---- AI Beautify (Gemini image editing, bring-your-own-key) ---- */
-  const AI_MODEL = "gemini-2.5-flash-image";
+  const GEMINI_DEFAULT_MODEL = "gemini-3.1-flash-image";
+  const GEMINI_FALLBACK_MODEL = "gemini-2.5-flash-image";
   const DENSITY_PROMPT = {
-    low: "Add only a few plants — two or three well-chosen specimens — keeping the look minimal and airy.",
-    medium: "Add a balanced, curated amount of plants — roughly four to six — so the space feels green but uncluttered.",
-    high: "Fill the space generously with plants — eight or more, layered at different heights for a lush urban-jungle look — while keeping walkways and furniture usable.",
+    low: "a few (2 or 3) realistic potted plants",
+    medium: "4 to 6 realistic potted plants",
+    high: "8 or more realistic potted plants, layered at different heights",
   };
-  const buildAiPrompt = () =>
-    "Redecorate this exact photo into a beautiful, plant-filled version of the same space. " +
-    "Keep the room's architecture, walls, windows, flooring, existing furniture, lighting direction " +
-    "and camera angle exactly the same. " +
-    DENSITY_PROMPT[plantDensity] + " " +
-    `The space appears to get ${LIGHT_INFO[lightLevel].prompt}. ` +
-    "Place the plants in natural, tasteful spots — corners, beside furniture, on shelves, trailing or " +
-    "hanging near windows — with correct perspective, soft realistic shadows, and pots that match the " +
-    "room's style. You may add subtle plant-friendly styling like a woven basket or plant stand. " +
-    "Photorealistic, magazine-quality interior design photograph.";
+  // Kept short and positively phrased: long negative instructions ("never
+  // place on curtains") make edit models attend to those very objects. The
+  // prompt never describes the scene's light; its one mention of lighting
+  // is the instruction to leave it unchanged. Species are sampled across
+  // the whole palette each run so results vary.
+  const ALL_SPECIES = [...LIGHT_INFO.low.pool, ...LIGHT_INFO.medium.pool, ...LIGHT_INFO.bright.pool];
+  const buildAiPrompt = () => {
+    const species = samplePool(ALL_SPECIES, 5).join(", ");
+    return (
+      `Add ${DENSITY_PROMPT[plantDensity]} to this photo. ` +
+      "This is a small, careful edit: keep everything else exactly as it is — the architecture, walls, " +
+      "windows, furniture, floor, colours, lighting, exposure and camera angle must stay unchanged. " +
+      `Use varied species, for example ${species}. Mix leaf shapes, ` +
+      "sizes and colours, including at least one variegated or colourful variety. " +
+      "Give each plant a different stylish pot — ceramic, terracotta, woven basket, stoneware or " +
+      "matte black — chosen to match the room's palette. " +
+      "Place each plant only where it would truly stand: on open floor, a tabletop, a shelf or a " +
+      "windowsill with free space, at realistic scale, grounded with a soft natural shadow, keeping " +
+      "walkways, seating and views clear. " +
+      "The result should look like a professionally styled photograph of the exact same room."
+    );
+  };
   const aiPanel = $("#aiPanel");
   const aiError = $("#aiError");
   const aiBusy = $("#aiBusy");
@@ -654,10 +690,14 @@
     return new Blob([arr], { type });
   };
 
+  const getGeminiModel = () => {
+    try { return localStorage.getItem("tpc-gemini-model") || GEMINI_DEFAULT_MODEL; } catch { return GEMINI_DEFAULT_MODEL; }
+  };
+
   // each generate(key) resolves to an image src (data: or blob: URL)
   const generateGemini = async (key) => {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${AI_MODEL}:generateContent?key=${encodeURIComponent(key)}`,
+    const call = (model) => fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -671,6 +711,11 @@
         }),
       }
     );
+    let res = await call(getGeminiModel());
+    if (res.status === 404 && getGeminiModel() !== GEMINI_FALLBACK_MODEL) {
+      // chosen model not available on this key/region — fall back
+      res = await call(GEMINI_FALLBACK_MODEL);
+    }
     if (!res.ok) {
       const detail = await res.json().catch(() => null);
       const reason = detail?.error?.message || `HTTP ${res.status}`;
@@ -692,7 +737,10 @@
   };
 
   const HF_CLIENT_URL = "https://cdn.jsdelivr.net/npm/@huggingface/inference@4/+esm";
-  const HF_MODEL = "Qwen/Qwen-Image-Edit";
+  const HF_DEFAULT_MODEL = "black-forest-labs/FLUX.1-Kontext-dev";
+  const getHfModel = () => {
+    try { return localStorage.getItem("tpc-hf-model") || HF_DEFAULT_MODEL; } catch { return HF_DEFAULT_MODEL; }
+  };
   const generateHf = async (key) => {
     let InferenceClient;
     try {
@@ -700,17 +748,21 @@
     } catch {
       throw new Error("Could not load the Hugging Face client — check your connection and try again.");
     }
+    const model = getHfModel();
     try {
       const client = new InferenceClient(key);
       const blob = await client.imageToImage({
         provider: "auto",
-        model: HF_MODEL,
+        model,
         inputs: b64ToBlob(baseAsJpeg(), "image/jpeg"),
         parameters: { prompt: buildAiPrompt() },
       });
       return URL.createObjectURL(blob);
     } catch (err) {
       const msg = String(err?.message || err);
+      if (/gated|must be authorized|access request|license/i.test(msg)) {
+        throw new Error(`${model} is a gated model — open huggingface.co/${model}, accept its license with your account, then try again (or switch the model to Qwen Image Edit 2509).`);
+      }
       if (/401|invalid|credential|unauthorized/i.test(msg)) {
         throw Object.assign(new Error("That token was rejected. Paste a valid Hugging Face token with 'Inference Providers' permission."), { badKey: true });
       }
@@ -721,6 +773,47 @@
     }
   };
 
+  const getOpenAiModel = () => {
+    try { return localStorage.getItem("tpc-openai-model") || "gpt-image-1"; } catch { return "gpt-image-1"; }
+  };
+  const generateOpenAi = async (key) => {
+    const call = async (withFidelity) => {
+      const form = new FormData();
+      form.append("model", getOpenAiModel());
+      form.append("image", b64ToBlob(baseAsJpeg(), "image/jpeg"), "room.jpg");
+      form.append("prompt", buildAiPrompt());
+      if (withFidelity) form.append("input_fidelity", "high"); // preserve the room closely
+      return fetch("https://api.openai.com/v1/images/edits", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}` },
+        body: form,
+      });
+    };
+    let res = await call(true);
+    if (res.status === 400) {
+      const detail = await res.clone().json().catch(() => null);
+      if (/input_fidelity/i.test(detail?.error?.message || "")) res = await call(false);
+    }
+    if (!res.ok) {
+      const detail = await res.json().catch(() => null);
+      const reason = detail?.error?.message || `HTTP ${res.status}`;
+      if (res.status === 401) {
+        throw Object.assign(new Error(`That key was rejected (${reason}). Paste a valid OpenAI API key.`), { badKey: true });
+      }
+      if (res.status === 403) {
+        throw new Error(`OpenAI refused the request (${reason}). Image generation may require a verified organization — check platform.openai.com/settings.`);
+      }
+      if (res.status === 429) {
+        throw new Error("OpenAI rate/credit limit hit — check your usage and billing on platform.openai.com, then try again.");
+      }
+      throw new Error(`OpenAI returned an error: ${reason}`);
+    }
+    const data = await res.json();
+    const b64 = data?.data?.[0]?.b64_json;
+    if (!b64) throw new Error("OpenAI returned no image — please try again.");
+    return `data:image/png;base64,${b64}`;
+  };
+
   const AI_PROVIDERS = {
     gemini: {
       label: "Google Gemini",
@@ -728,7 +821,19 @@
       placeholder: "Paste your Gemini API key",
       link: "https://aistudio.google.com/apikey",
       linkText: "aistudio.google.com/apikey",
+      note: "Free tier available — a good place to start.",
+      step1: "Get a free key at ",
       generate: generateGemini,
+    },
+    openai: {
+      label: "OpenAI",
+      keyName: "tpc-openai-key",
+      placeholder: "Paste your OpenAI API key (sk-…)",
+      link: "https://platform.openai.com/api-keys",
+      linkText: "platform.openai.com/api-keys",
+      note: "The same image model ChatGPT uses. Paid API — typically a few cents per image, billed to your OpenAI account.",
+      step1: "Create an API key at ",
+      generate: generateOpenAi,
     },
     hf: {
       label: "Hugging Face",
@@ -736,6 +841,8 @@
       placeholder: "Paste your Hugging Face token (hf_…)",
       link: "https://huggingface.co/settings/tokens",
       linkText: "huggingface.co/settings/tokens",
+      note: "Free monthly credits included. The default FLUX model needs a one-time license acceptance on hf.co.",
+      step1: "Get a free token (with “Inference Providers” permission) at ",
       generate: generateHf,
     },
   };
@@ -754,10 +861,24 @@
     const link = $("#aiKeyLink");
     link.href = p.link;
     link.textContent = p.linkText;
-    $("#aiStep1").firstChild.textContent = aiProvider === "hf"
-      ? "Get a free token (with “Inference Providers” permission) at "
-      : "Get a free key at ";
+    $("#aiStep1").firstChild.textContent = p.step1;
+    $("#providerNote").textContent = p.note;
+    $("#hfModelRow").hidden = aiProvider !== "hf";
+    $("#hfModelSelect").value = getHfModel();
+    $("#geminiModelRow").hidden = aiProvider !== "gemini";
+    $("#geminiModelSelect").value = getGeminiModel();
+    $("#openaiModelRow").hidden = aiProvider !== "openai";
+    $("#openaiModelSelect").value = getOpenAiModel();
   };
+  $("#hfModelSelect").addEventListener("change", (e) => {
+    try { localStorage.setItem("tpc-hf-model", e.target.value); } catch { /* ignore */ }
+  });
+  $("#geminiModelSelect").addEventListener("change", (e) => {
+    try { localStorage.setItem("tpc-gemini-model", e.target.value); } catch { /* ignore */ }
+  });
+  $("#openaiModelSelect").addEventListener("change", (e) => {
+    try { localStorage.setItem("tpc-openai-model", e.target.value); } catch { /* ignore */ }
+  });
   $$('input[name="aiProvider"]').forEach((r) =>
     r.addEventListener("change", () => {
       aiProvider = r.value;
@@ -790,6 +911,7 @@
       const result = new Image();
       result.onload = () => {
         aiImg = result;
+        sizeCanvasTo(result);
         placed = [];
         setSelected(-1);
         $("#undoAiBtn").hidden = false;
@@ -819,6 +941,9 @@
   $("#aiCancelBtn").addEventListener("click", () => { aiPanel.hidden = true; });
   $("#undoAiBtn").addEventListener("click", () => {
     aiImg = null;
+    sizeCanvasTo(baseImg);
+    placed = [];
+    setSelected(-1);
     $("#undoAiBtn").hidden = true;
     compareRange.value = 0;
     updateCompare();

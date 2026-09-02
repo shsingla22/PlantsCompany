@@ -569,6 +569,18 @@ input[type="range"]::-moz-range-thumb {
 }
 .ai-panel__providers label { display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer; }
 .ai-panel__providers input { accent-color: var(--green-500); width: 16px; height: 16px; cursor: pointer; }
+.ai-panel__provider-note {
+  font-size: 0.88rem; color: var(--ink-soft); margin: -0.2rem 0 0.8rem;
+  padding-left: 0.2rem; font-style: italic;
+}
+.ai-panel__model { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.8rem; font-size: 0.92rem; font-weight: 600; }
+.ai-panel__model select {
+  flex: 1; min-width: 200px; font-family: inherit; font-size: 0.92rem;
+  padding: 0.55rem 0.8rem; border-radius: 12px; cursor: pointer;
+  border: 1.5px solid color-mix(in srgb, var(--ink) 18%, transparent);
+  background: var(--bg); color: var(--ink);
+}
+.ai-panel__model select:focus { outline: none; border-color: var(--green-500); }
 .ai-panel__row { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.9rem; }
 .ai-panel__row input {
   flex: 1; min-width: 220px; font-family: inherit; font-size: 0.95rem;

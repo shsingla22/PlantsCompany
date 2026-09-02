@@ -6,8 +6,8 @@
     <rect x="24" y="52" width="14" height="30" rx="7" fill="#4f9265"/>
     <rect x="64" y="44" width="14" height="34" rx="7" fill="#4f9265"/>
     <path d="M45 40v60M51 36v66M57 40v60" stroke="#2f6b45" stroke-width="2" stroke-linecap="round"/>
-    <path d="M36 104h30l-4 26a8 8 0 0 1-8 6h-6a8 8 0 0 1-8-6l-4-26Z" fill="#c96f4a"/>
-    <rect x="32" y="98" width="38" height="10" rx="5" fill="#b55f3c"/>
+    <path d="M36 104h30l-4 26a8 8 0 0 1-8 6h-6a8 8 0 0 1-8-6l-4-26Z" fill="#8195a8"/>
+    <rect x="32" y="98" width="38" height="10" rx="5" fill="#6f8296"/>
   </g>
   <!-- round cactus -->
   <g>

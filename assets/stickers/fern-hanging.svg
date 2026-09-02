@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 240" width="200" height="240">
+  <!-- hanger -->
+  <path d="M100 0v18M100 18 62 66M100 18l38 48M100 18v52" stroke="#8a6f4d" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- basket -->
+  <path d="M56 66h88l-8 34a10 10 0 0 1-10 8H74a10 10 0 0 1-10-8l-8-34Z" fill="#c9a06a"/>
+  <path d="M60 78h80M64 90h72" stroke="#b58a53" stroke-width="4" fill="none"/>
+  <!-- fronds cascading -->
+  <g fill="none" stroke-linecap="round">
+    <path d="M74 70C48 96 34 130 36 168" stroke="#2f6b45" stroke-width="4"/>
+    <path d="M126 70c26 26 40 60 38 98" stroke="#2f6b45" stroke-width="4"/>
+    <path d="M92 72C80 110 78 150 84 190" stroke="#3a7d52" stroke-width="4"/>
+    <path d="M108 72c12 38 14 78 8 118" stroke="#3a7d52" stroke-width="4"/>
+    <path d="M100 72c0 40 0 84 0 126" stroke="#4f9265" stroke-width="4"/>
+  </g>
+  <!-- leaflets: dotted feathering -->
+  <g fill="#4f9265">
+    <ellipse cx="52" cy="98" rx="12" ry="5" transform="rotate(-46 52 98)"/>
+    <ellipse cx="40" cy="126" rx="12" ry="5" transform="rotate(-64 40 126)"/>
+    <ellipse cx="36" cy="154" rx="11" ry="5" transform="rotate(-80 36 154)"/>
+    <ellipse cx="148" cy="98" rx="12" ry="5" transform="rotate(46 148 98)"/>
+    <ellipse cx="160" cy="126" rx="12" ry="5" transform="rotate(64 160 126)"/>
+    <ellipse cx="164" cy="154" rx="11" ry="5" transform="rotate(80 164 154)"/>
+  </g>
+  <g fill="#65a678">
+    <ellipse cx="84" cy="112" rx="12" ry="5" transform="rotate(-72 84 112)"/>
+    <ellipse cx="80" cy="146" rx="12" ry="5" transform="rotate(-82 80 146)"/>
+    <ellipse cx="82" cy="178" rx="11" ry="5" transform="rotate(-88 82 178)"/>
+    <ellipse cx="116" cy="112" rx="12" ry="5" transform="rotate(72 116 112)"/>
+    <ellipse cx="120" cy="146" rx="12" ry="5" transform="rotate(82 120 146)"/>
+    <ellipse cx="118" cy="178" rx="11" ry="5" transform="rotate(88 118 178)"/>
+    <ellipse cx="100" cy="130" rx="12" ry="5" transform="rotate(90 100 130)"/>
+    <ellipse cx="100" cy="164" rx="12" ry="5" transform="rotate(90 100 164)"/>
+    <ellipse cx="100" cy="192" rx="10" ry="4.5" transform="rotate(90 100 192)"/>
+  </g>
+  <!-- top tuft -->
+  <path d="M70 68C64 48 70 30 88 22c2 12-2 20 4 30-8 6-14 12-22 16Z" fill="#3a7d52"/>
+  <path d="M130 68c6-20 0-38-18-46-2 12 2 20-4 30 8 6 14 12 22 16Z" fill="#3a7d52"/>
+  <path d="M100 66C92 48 94 30 108 18c4 12 2 22 6 32-4 8-8 12-14 16Z" fill="#4f9265"/>
+</svg>

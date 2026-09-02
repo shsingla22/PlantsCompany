@@ -377,46 +377,11 @@
     stickerById[s.id] = s;
   });
 
-  // Example spaces: preset = normalized placements {id, x (center/W), y (center/H), h (height/H), flip}
   const EXAMPLES = [
-    {
-      id: "living-room", title: "Cozy living room", blurb: "A bird of paradise by the window, trailing pothos above the shelf.",
-      img: "assets/img/rooms/living-room.jpg",
-      preset: [
-        { id: "bird-of-paradise", x: 0.9, y: 0.72, h: 0.52 },
-        { id: "monstera", x: 0.3, y: 0.86, h: 0.3, flip: true },
-        { id: "pothos-hanging", x: 0.2, y: 0.16, h: 0.3 },
-        { id: "cactus-trio", x: 0.66, y: 0.9, h: 0.1 },
-      ],
-    },
-    {
-      id: "bedroom", title: "Calm bedroom", blurb: "Soft greens for slower mornings and cleaner air.",
-      img: "assets/img/rooms/bedroom.jpg",
-      preset: [
-        { id: "palm", x: 0.08, y: 0.74, h: 0.46 },
-        { id: "snake-plant", x: 0.9, y: 0.8, h: 0.26, flip: true },
-        { id: "fern-hanging", x: 0.82, y: 0.14, h: 0.26 },
-      ],
-    },
-    {
-      id: "empty-room", title: "Blank canvas", blurb: "An empty corner is just a jungle waiting to happen.",
-      img: "assets/img/rooms/empty-room.jpg",
-      preset: [
-        { id: "monstera", x: 0.12, y: 0.72, h: 0.48 },
-        { id: "rubber-plant", x: 0.86, y: 0.78, h: 0.38, flip: true },
-        { id: "pothos-hanging", x: 0.6, y: 0.15, h: 0.28 },
-        { id: "cactus-trio", x: 0.38, y: 0.9, h: 0.12 },
-      ],
-    },
-    {
-      id: "deck", title: "Backyard deck", blurb: "Olive trees and desert friends for outdoor evenings.",
-      img: "assets/img/rooms/deck.jpg",
-      preset: [
-        { id: "olive-tree", x: 0.88, y: 0.66, h: 0.52 },
-        { id: "palm", x: 0.08, y: 0.72, h: 0.44, flip: true },
-        { id: "cactus-trio", x: 0.4, y: 0.92, h: 0.12 },
-      ],
-    },
+    { id: "living-room", title: "Cozy living room", img: "assets/img/rooms/living-room.jpg" },
+    { id: "bedroom", title: "Calm bedroom", img: "assets/img/rooms/bedroom.jpg" },
+    { id: "empty-room", title: "Blank canvas", img: "assets/img/rooms/empty-room.jpg" },
+    { id: "deck", title: "Backyard deck", img: "assets/img/rooms/deck.jpg" },
   ];
 
   const studioUpload = $("#studioUpload");
@@ -433,6 +398,52 @@
   let aiImg = null; // photorealistic AI makeover, drawn instead of baseImg
   let placed = [];
   let selected = -1;
+  let plantDensity = "medium";
+  let lightLevel = "medium";
+
+  /* light analysis: mean luminance blended with highlight strength (windows,
+     sky) separates dim corners from bright rooms with dark floors */
+  const LIGHT_INFO = {
+    low: {
+      label: "Low light",
+      prompt: "low natural light, so favor shade-tolerant plants such as a ZZ plant, snake plant, golden pothos, and parlor palm",
+      recs: ["ZZ Plant", "Snake Plant", "Golden Pothos", "Parlor Palm"],
+    },
+    medium: {
+      label: "Medium, indirect light",
+      prompt: "medium indirect light, so favor plants that thrive in it such as a calathea, boston fern, spider plant, and peperomia",
+      recs: ["Calathea", "Boston Fern", "Spider Plant", "Peperomia"],
+    },
+    bright: {
+      label: "Bright light",
+      prompt: "bright natural light, so favor sun-loving plants such as a monstera, fiddle-leaf fig, echeveria, and string of pearls",
+      recs: ["Monstera", "Fiddle Leaf Fig", "Echeveria", "String of Pearls"],
+    },
+  };
+
+  const analyzeLight = (img) => {
+    const off = document.createElement("canvas");
+    off.width = off.height = 64;
+    const c = off.getContext("2d");
+    c.drawImage(img, 0, 0, 64, 64);
+    const d = c.getImageData(0, 0, 64, 64).data;
+    const lum = [];
+    for (let i = 0; i < d.length; i += 4) {
+      lum.push(0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]);
+    }
+    lum.sort((a, b) => a - b);
+    const mean = lum.reduce((s, v) => s + v, 0) / lum.length;
+    const p95 = lum[Math.floor(lum.length * 0.95)];
+    const score = mean * 0.6 + p95 * 0.4;
+    return score < 120 ? "low" : score < 150 ? "medium" : "bright";
+  };
+
+  const showLightInsight = () => {
+    const info = LIGHT_INFO[lightLevel];
+    const el = $("#lightInsight");
+    el.innerHTML = `☀️ <strong>Light check: ${info.label}.</strong> Plants that will thrive here: ${info.recs.join(", ")}.`;
+    el.hidden = false;
+  };
 
   const HANDLE = 14;
 
@@ -499,6 +510,8 @@
       placed = [];
       aiImg = null;
       $("#undoAiBtn").hidden = true;
+      lightLevel = analyzeLight(img);
+      showLightInsight();
       setSelected(-1);
       compareRange.value = 0;
       updateCompare();
@@ -535,19 +548,32 @@
     const side = Math.random() < 0.5 ? 1 : 0; // 1 = tall plant on right
     const jitter = () => (Math.random() - 0.5) * 0.04;
     const floors = STICKERS.filter((s) => s.kind === "floor");
-    const tall = floors[Math.floor(Math.random() * floors.length)];
-    let medium = floors[Math.floor(Math.random() * floors.length)];
-    if (medium === tall) medium = floors[(floors.indexOf(tall) + 2) % floors.length];
+    const pickFloor = (not) => {
+      let s = floors[Math.floor(Math.random() * floors.length)];
+      if (not.includes(s)) s = floors[(floors.indexOf(s) + 2) % floors.length];
+      return s;
+    };
+    const tall = pickFloor([]);
+    const medium = pickFloor([tall]);
     const hang = Math.random() < 0.5 ? stickerById["fern-hanging"] : stickerById["pothos-hanging"];
+    const otherHang = hang.id === "fern-hanging" ? stickerById["pothos-hanging"] : stickerById["fern-hanging"];
 
     const tallH = 0.5;
     addSticker(tall, { x: (side ? 0.9 : 0.1) + jitter(), y: 0.97 - tallH / 2, h: tallH, flip: !!side });
-    const medH = 0.32;
-    addSticker(medium, { x: (side ? 0.08 : 0.92) + jitter(), y: 0.97 - medH / 2, h: medH, flip: !side });
     const hangH = 0.28;
     addSticker(hang, { x: (side ? 0.16 : 0.84) + jitter(), y: hangH / 2 - 0.02, h: hangH });
-    if (canvas.width / canvas.height > 1.15) {
-      addSticker(stickerById["cactus-trio"], { x: 0.5 + jitter() * 3, y: 0.94, h: 0.11 });
+    if (plantDensity !== "low") {
+      const medH = 0.32;
+      addSticker(medium, { x: (side ? 0.08 : 0.92) + jitter(), y: 0.97 - medH / 2, h: medH, flip: !side });
+      if (canvas.width / canvas.height > 1.15 || plantDensity === "high") {
+        addSticker(stickerById["cactus-trio"], { x: 0.5 + jitter() * 3, y: 0.94, h: 0.11 });
+      }
+    }
+    if (plantDensity === "high") {
+      const extra = pickFloor([tall, medium]);
+      const exH = 0.26;
+      addSticker(extra, { x: 0.32 + jitter(), y: 0.98 - exH / 2, h: exH, flip: !!side });
+      addSticker(otherHang, { x: (side ? 0.36 : 0.64) + jitter(), y: 0.26 / 2 - 0.02, h: 0.26 });
     }
     setSelected(-1);
   };
@@ -565,12 +591,7 @@
     (ex, i) => `<button class="example-thumb" data-i="${i}"><img src="${ex.img}" alt="${ex.title}" loading="lazy" /><span>${ex.title}</span></button>`
   ).join("");
 
-  const loadExample = async (i) => {
-    const ex = EXAMPLES[i];
-    await loadBase(ex.img);
-    ex.preset.forEach((p) => addSticker(stickerById[p.id], p));
-    setSelected(-1);
-  };
+  const loadExample = (i) => loadBase(EXAMPLES[i].img);
   $("#exampleThumbs").addEventListener("click", (e) => {
     const btn = e.target.closest(".example-thumb");
     if (btn) loadExample(+btn.dataset.i);
@@ -598,15 +619,21 @@
 
   /* ---- AI Beautify (Gemini image editing, bring-your-own-key) ---- */
   const AI_MODEL = "gemini-2.5-flash-image";
-  const AI_PROMPT =
+  const DENSITY_PROMPT = {
+    low: "Add only a few plants — two or three well-chosen specimens — keeping the look minimal and airy.",
+    medium: "Add a balanced, curated amount of plants — roughly four to six — so the space feels green but uncluttered.",
+    high: "Fill the space generously with plants — eight or more, layered at different heights for a lush urban-jungle look — while keeping walkways and furniture usable.",
+  };
+  const buildAiPrompt = () =>
     "Redecorate this exact photo into a beautiful, plant-filled version of the same space. " +
     "Keep the room's architecture, walls, windows, flooring, existing furniture, lighting direction " +
-    "and camera angle exactly the same. Add lush, realistic indoor plants in natural, tasteful spots — " +
-    "for example a large monstera or fiddle-leaf fig in a corner, an areca palm beside furniture, " +
-    "trailing pothos on shelves or hanging near windows, and a few small potted plants — with correct " +
-    "perspective, soft realistic shadows, and pots that match the room's style. You may add subtle " +
-    "plant-friendly styling like a woven basket or plant stand. Photorealistic, magazine-quality " +
-    "interior design photograph.";
+    "and camera angle exactly the same. " +
+    DENSITY_PROMPT[plantDensity] + " " +
+    `The space appears to get ${LIGHT_INFO[lightLevel].prompt}. ` +
+    "Place the plants in natural, tasteful spots — corners, beside furniture, on shelves, trailing or " +
+    "hanging near windows — with correct perspective, soft realistic shadows, and pots that match the " +
+    "room's style. You may add subtle plant-friendly styling like a woven basket or plant stand. " +
+    "Photorealistic, magazine-quality interior design photograph.";
   const aiPanel = $("#aiPanel");
   const aiError = $("#aiError");
   const aiBusy = $("#aiBusy");
@@ -638,7 +665,7 @@
           contents: [{
             parts: [
               { inlineData: { mimeType: "image/jpeg", data: baseAsJpeg() } },
-              { text: AI_PROMPT },
+              { text: buildAiPrompt() },
             ],
           }],
         }),
@@ -679,7 +706,7 @@
         provider: "auto",
         model: HF_MODEL,
         inputs: b64ToBlob(baseAsJpeg(), "image/jpeg"),
-        parameters: { prompt: AI_PROMPT },
+        parameters: { prompt: buildAiPrompt() },
       });
       return URL.createObjectURL(blob);
     } catch (err) {
@@ -799,7 +826,14 @@
   });
 
   /* toolbar */
-  $("#beautifyBtn").addEventListener("click", () => {
+  $$(".density__opt").forEach((btn) =>
+    btn.addEventListener("click", () => {
+      plantDensity = btn.dataset.density;
+      $$(".density__opt").forEach((b) => b.classList.toggle("is-active", b === btn));
+    })
+  );
+  $("#stickerBtn").addEventListener("click", () => {
+    aiPanel.hidden = true;
     if (aiImg) { aiImg = null; $("#undoAiBtn").hidden = true; }
     beautify();
   });
@@ -904,32 +938,8 @@
     }
   });
 
-  /* before/after gallery */
-  $("#baGrid").innerHTML = EXAMPLES.map(
-    (ex, i) => `
-    <button class="ba-card" data-i="${i}">
-      <span class="ba-card__stage">
-        <span class="ba-card__label">After</span>
-        <span class="ba-card__label ba-card__label--before">Before</span>
-        <img src="assets/img/rooms/${ex.id}-after.jpg" alt="${ex.title} styled with plants" loading="lazy" />
-        <img class="ba-card__before" src="${ex.img}" alt="" loading="lazy" />
-      </span>
-      <span class="ba-card__body">
-        <strong>${ex.title}</strong>
-        ${ex.blurb}
-        <span>Open in studio →</span>
-      </span>
-    </button>`
-  ).join("");
-  $("#baGrid").addEventListener("click", async (e) => {
-    const card = e.target.closest(".ba-card");
-    if (!card) return;
-    await loadExample(+card.dataset.i);
-    $("#studio").scrollIntoView({ behavior: "smooth" });
-  });
-
-  // used by the build step to pre-render the gallery's "after" images
-  window.tpcStudio = { loadExample, hasAi: () => !!aiImg, exportDataURL: () => { render(false); const d = canvas.toDataURL("image/jpeg", 0.9); render(); return d; } };
+  // test/automation hooks
+  window.tpcStudio = { loadExample, hasAi: () => !!aiImg, getLight: () => lightLevel, exportDataURL: () => { render(false); const d = canvas.toDataURL("image/jpeg", 0.9); render(); return d; } };
 
   /* ---------- newsletter ---------- */
   $("#ctaForm").addEventListener("submit", (e) => {

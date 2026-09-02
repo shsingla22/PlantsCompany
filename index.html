@@ -24,11 +24,11 @@
       ThePlantsCompany
     </a>
     <nav class="nav__links" aria-label="Primary">
+      <a href="#studio">Studio</a>
       <a href="#systems">Systems</a>
       <a href="#finder">Plant Finder</a>
       <a href="#catalog">Catalog</a>
       <a href="#dashboard">Live Care</a>
-      <a href="#studio">Studio</a>
       <a href="#calculator">Calculator</a>
     </nav>
     <div class="nav__actions">
@@ -70,8 +70,8 @@
           and your first-ever succulent all get exactly the water, light, and love they need.
         </p>
         <div class="hero__cta">
-          <a class="btn btn--primary" href="#finder">Match me with a plant</a>
-          <a class="btn btn--ghost" href="#systems">Explore systems<span class="btn__arrow">→</span></a>
+          <a class="btn btn--primary" href="#studio">🪄 Beautify my space</a>
+          <a class="btn btn--ghost" href="#finder">Find your plant<span class="btn__arrow">→</span></a>
         </div>
         <dl class="hero__stats">
           <div><dt data-count="12480">0</dt><dd>plants thriving</dd></div>
@@ -110,7 +110,7 @@
         </div>
       </div>
 
-      <a class="hero__scroll" href="#systems" aria-label="Scroll to systems">
+      <a class="hero__scroll" href="#studio" aria-label="Scroll to the Plantscape Studio">
         <span class="hero__scroll-dot"></span>
       </a>
     </section>
@@ -122,6 +122,107 @@
         <span>Monstera</span><i>✦</i><span>Pothos</span><i>✦</i><span>Snake Plant</span><i>✦</i><span>Fiddle Leaf Fig</span><i>✦</i><span>Calathea</span><i>✦</i><span>Philodendron</span><i>✦</i><span>String of Pearls</span><i>✦</i><span>Boston Fern</span><i>✦</i>
       </div>
     </div>
+
+    <!-- ============ PLANTSCAPE STUDIO ============ -->
+    <section class="section section--tinted" id="studio">
+      <div class="section__head reveal">
+        <p class="eyebrow"><span class="eyebrow__dot"></span> Plantscape Studio</p>
+        <h2>See your space,<br /><em>beautified with plants.</em></h2>
+        <p class="section__sub">
+          Upload a photo of any room, balcony, or backyard — or pick an example. We read the
+          light in your photo and recommend plants that will thrive there, you choose how leafy
+          to go, and <strong>Beautify</strong> repaints the space photorealistically with AI
+          (bring your free Gemini or Hugging Face key — no key gets an instant illustrated
+          preview instead). Slide to compare before &amp; after and download the result.
+        </p>
+      </div>
+
+      <div class="studio reveal">
+        <!-- upload state -->
+        <div class="studio__upload" id="studioUpload">
+          <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload a photo of your space">
+            <span class="dropzone__icon">🖼️</span>
+            <strong>Drop a photo here</strong>
+            <span>or click to browse — your image stays in your browser</span>
+            <input type="file" id="fileInput" accept="image/*" hidden />
+          </div>
+          <p class="studio__or">…or start from an example space</p>
+          <div class="studio__examples" id="exampleThumbs"></div>
+        </div>
+
+        <!-- workspace state -->
+        <div class="studio__work" id="studioWork" hidden>
+          <p class="studio__insight" id="lightInsight" hidden></p>
+          <div class="studio__toolbar">
+            <div class="density" role="group" aria-label="How many plants">
+              <button class="density__opt" data-density="low">🌿 A few</button>
+              <button class="density__opt is-active" data-density="medium">🌿🌿 Balanced</button>
+              <button class="density__opt" data-density="high">🌿🌿🌿 Jungle</button>
+            </div>
+            <button class="btn btn--primary" id="aiBtn">✨ Beautify</button>
+            <button class="btn btn--ghost" id="undoAiBtn" hidden>↩ Undo</button>
+            <button class="btn btn--ghost" id="clearBtn">↺ Clear plants</button>
+            <button class="btn btn--ghost" id="downloadBtn">⬇ Download</button>
+            <button class="btn btn--ghost" id="newPhotoBtn">🖼 New photo</button>
+            <span class="studio__hint">Pick how leafy you want it, then hit Beautify · or tap plants below to place them yourself</span>
+          </div>
+
+          <div class="ai-panel" id="aiPanel" hidden>
+            <h4>🪄 Photorealistic AI Beautify</h4>
+            <p>
+              This mode sends your photo to an AI image model that repaints it with realistic
+              plants — matching your room's lighting and perspective. It needs your own free API
+              key, used directly from your browser and stored only on this device.
+            </p>
+            <div class="ai-panel__providers" role="radiogroup" aria-label="AI provider">
+              <label><input type="radio" name="aiProvider" value="gemini" checked /> Google Gemini</label>
+              <label><input type="radio" name="aiProvider" value="hf" /> Hugging Face</label>
+            </div>
+            <ol>
+              <li id="aiStep1">Get a free key at <a id="aiKeyLink" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/apikey</a></li>
+              <li>Paste it below and hit Generate</li>
+            </ol>
+            <div class="ai-panel__row">
+              <input type="password" id="aiKeyInput" placeholder="Paste your Gemini API key" autocomplete="off" />
+              <button class="btn btn--primary" id="aiGoBtn">Generate</button>
+              <button class="btn btn--ghost" id="aiCancelBtn">Cancel</button>
+            </div>
+            <p class="ai-panel__alt">No key handy? <button type="button" class="ai-panel__skip" id="stickerBtn">Use the instant illustrated preview instead</button></p>
+            <p class="ai-panel__note" id="aiError" hidden></p>
+          </div>
+
+          <div class="studio__stage" id="studioStage">
+            <div class="studio__busy" id="aiBusy" hidden>
+              <span class="studio__spinner"></span>
+              <strong>Growing your plantscape…</strong>
+              <span>The AI is repainting your photo — usually 10–25 seconds</span>
+            </div>
+            <canvas id="studioCanvas"></canvas>
+            <div class="studio__before" id="beforeLayer" aria-hidden="true">
+              <img id="beforeImg" alt="" />
+              <span class="studio__divider"></span>
+            </div>
+            <span class="studio__tag studio__tag--before">Before</span>
+            <span class="studio__tag studio__tag--after">After</span>
+          </div>
+          <label class="studio__compare">
+            <span>Compare</span>
+            <input type="range" id="compareRange" min="0" max="100" value="0" />
+          </label>
+
+          <div class="studio__selbar" id="selBar" hidden>
+            <span>Selected plant:</span>
+            <button id="selBigger" title="Bigger">＋</button>
+            <button id="selSmaller" title="Smaller">－</button>
+            <button id="selFlip" title="Flip">⇋</button>
+            <button id="selDelete" title="Remove">🗑</button>
+          </div>
+
+          <div class="studio__palette" id="stickerPalette" aria-label="Plant palette"></div>
+        </div>
+
+      </div>
+    </section>
 
     <!-- ============ SYSTEMS ============ -->
     <section class="section" id="systems">
@@ -305,107 +406,6 @@
         <div class="calc__result" id="calcResult" aria-live="polite">
           <div class="calc__drops" id="calcDrops"></div>
           <p class="calc__text" id="calcText"></p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ PLANTSCAPE STUDIO ============ -->
-    <section class="section section--tinted" id="studio">
-      <div class="section__head reveal">
-        <p class="eyebrow"><span class="eyebrow__dot"></span> Plantscape Studio</p>
-        <h2>See your space,<br /><em>beautified with plants.</em></h2>
-        <p class="section__sub">
-          Upload a photo of any room, balcony, or backyard — or pick an example. Tap
-          <strong>AI Beautify</strong> for a photorealistic, magazine-style makeover, or
-          <strong>Sticker preview</strong> for an instant illustrated one. Slide to compare
-          before &amp; after and download the result. Photos stay in your browser unless you
-          choose AI Beautify, which sends the photo to the AI provider you pick — Google
-          Gemini or Hugging Face — using your own key.
-        </p>
-      </div>
-
-      <div class="studio reveal">
-        <!-- upload state -->
-        <div class="studio__upload" id="studioUpload">
-          <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload a photo of your space">
-            <span class="dropzone__icon">🖼️</span>
-            <strong>Drop a photo here</strong>
-            <span>or click to browse — your image stays in your browser</span>
-            <input type="file" id="fileInput" accept="image/*" hidden />
-          </div>
-          <p class="studio__or">…or start from an example space</p>
-          <div class="studio__examples" id="exampleThumbs"></div>
-        </div>
-
-        <!-- workspace state -->
-        <div class="studio__work" id="studioWork" hidden>
-          <div class="studio__toolbar">
-            <button class="btn btn--primary" id="aiBtn">🪄 AI Beautify</button>
-            <button class="btn btn--ghost" id="beautifyBtn">✨ Sticker preview</button>
-            <button class="btn btn--ghost" id="undoAiBtn" hidden>↩ Undo AI</button>
-            <button class="btn btn--ghost" id="clearBtn">↺ Clear plants</button>
-            <button class="btn btn--ghost" id="downloadBtn">⬇ Download</button>
-            <button class="btn btn--ghost" id="newPhotoBtn">🖼 New photo</button>
-            <span class="studio__hint">Tap a plant below to add it · drag to move · scroll or drag the corner dot to resize</span>
-          </div>
-
-          <div class="ai-panel" id="aiPanel" hidden>
-            <h4>🪄 Photorealistic AI Beautify</h4>
-            <p>
-              This mode sends your photo to an AI image model that repaints it with realistic
-              plants — matching your room's lighting and perspective. It needs your own free API
-              key, used directly from your browser and stored only on this device.
-            </p>
-            <div class="ai-panel__providers" role="radiogroup" aria-label="AI provider">
-              <label><input type="radio" name="aiProvider" value="gemini" checked /> Google Gemini</label>
-              <label><input type="radio" name="aiProvider" value="hf" /> Hugging Face</label>
-            </div>
-            <ol>
-              <li id="aiStep1">Get a free key at <a id="aiKeyLink" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/apikey</a></li>
-              <li>Paste it below and hit Generate</li>
-            </ol>
-            <div class="ai-panel__row">
-              <input type="password" id="aiKeyInput" placeholder="Paste your Gemini API key" autocomplete="off" />
-              <button class="btn btn--primary" id="aiGoBtn">Generate</button>
-              <button class="btn btn--ghost" id="aiCancelBtn">Cancel</button>
-            </div>
-            <p class="ai-panel__note" id="aiError" hidden></p>
-          </div>
-
-          <div class="studio__stage" id="studioStage">
-            <div class="studio__busy" id="aiBusy" hidden>
-              <span class="studio__spinner"></span>
-              <strong>Growing your plantscape…</strong>
-              <span>The AI is repainting your photo — usually 10–25 seconds</span>
-            </div>
-            <canvas id="studioCanvas"></canvas>
-            <div class="studio__before" id="beforeLayer" aria-hidden="true">
-              <img id="beforeImg" alt="" />
-              <span class="studio__divider"></span>
-            </div>
-            <span class="studio__tag studio__tag--before">Before</span>
-            <span class="studio__tag studio__tag--after">After</span>
-          </div>
-          <label class="studio__compare">
-            <span>Compare</span>
-            <input type="range" id="compareRange" min="0" max="100" value="0" />
-          </label>
-
-          <div class="studio__selbar" id="selBar" hidden>
-            <span>Selected plant:</span>
-            <button id="selBigger" title="Bigger">＋</button>
-            <button id="selSmaller" title="Smaller">－</button>
-            <button id="selFlip" title="Flip">⇋</button>
-            <button id="selDelete" title="Remove">🗑</button>
-          </div>
-
-          <div class="studio__palette" id="stickerPalette" aria-label="Plant palette"></div>
-        </div>
-
-        <!-- before/after example gallery -->
-        <div class="studio__gallery">
-          <h3 class="studio__gallery-title">Before &amp; after — hover or tap to peek at the original</h3>
-          <div class="ba-grid" id="baGrid"></div>
         </div>
       </div>
     </section>

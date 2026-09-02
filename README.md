@@ -14,13 +14,15 @@ home plant care systems (watering, light, and soil sensing).
 - **Live care dashboard** — drag moisture / light / humidity sliders and watch
   the plant-happiness gauge and advice respond in real time.
 - **Watering calculator** — plant type × pot size × season → ml and cadence.
-- **Plantscape Studio** — upload a photo of your room or yard (or pick an
-  example) and beautify it two ways: **AI Beautify** sends the photo to your
-  choice of Google's Gemini image model or Hugging Face (Qwen-Image-Edit via
-  Inference Providers) — bring your own free key, entered in the browser and
-  stored locally — for a photorealistic plant makeover, while
-  **Sticker preview** composites illustrated plants instantly and offline.
-  Drag plants around, compare before/after with a slider, and download the
+- **Plantscape Studio** (front and center, right after the hero) — upload a
+  photo of your room or yard, or pick an example. The studio reads the light
+  level from the photo itself and recommends plants that will thrive there,
+  you pick a plant density (a few / balanced / jungle), and **Beautify**
+  repaints the space photorealistically via Google Gemini or Hugging Face
+  (Qwen-Image-Edit) — bring your own free key, entered in the browser and
+  stored locally; light level and density are woven into the AI prompt.
+  Without a key, an instant illustrated preview is offered instead. Drag
+  plants around, compare before/after with a slider, and download the
   result. Photos stay in the browser except when AI Beautify is used.
 - **Delight everywhere** — dark/light theme with saved preference, 3D-tilt
   cards with cursor glow, scroll-reveal animations, testimonial carousel,

@@ -27,6 +27,4 @@ and used under their respective free licenses. Images were resized for the web.
 | `empty-room.jpg` | [Empty apartment room with corner windows](https://commons.wikimedia.org/wiki/File:Empty_apartment_room_with_corner_windows.jpg) | aismallard | CC BY-SA 3.0 |
 | `deck.jpg` | [A raised decking with furniture, Theydon Bois...](https://commons.wikimedia.org/wiki/File:A_raised_decking_with_furniture,_Theydon_Bois,_Essex,_England.JPG) | Acabashi | CC BY-SA 4.0 |
 
-The `*-after.jpg` images are derivatives of the above, composited with this
-project's own plant illustrations. Plant sticker artwork (`assets/stickers/`)
-is original to this project.
+Plant sticker artwork (`assets/stickers/`) is original to this project.

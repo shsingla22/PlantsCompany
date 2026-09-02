@@ -773,6 +773,47 @@
     }
   };
 
+  const getOpenAiModel = () => {
+    try { return localStorage.getItem("tpc-openai-model") || "gpt-image-1"; } catch { return "gpt-image-1"; }
+  };
+  const generateOpenAi = async (key) => {
+    const call = async (withFidelity) => {
+      const form = new FormData();
+      form.append("model", getOpenAiModel());
+      form.append("image", b64ToBlob(baseAsJpeg(), "image/jpeg"), "room.jpg");
+      form.append("prompt", buildAiPrompt());
+      if (withFidelity) form.append("input_fidelity", "high"); // preserve the room closely
+      return fetch("https://api.openai.com/v1/images/edits", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}` },
+        body: form,
+      });
+    };
+    let res = await call(true);
+    if (res.status === 400) {
+      const detail = await res.clone().json().catch(() => null);
+      if (/input_fidelity/i.test(detail?.error?.message || "")) res = await call(false);
+    }
+    if (!res.ok) {
+      const detail = await res.json().catch(() => null);
+      const reason = detail?.error?.message || `HTTP ${res.status}`;
+      if (res.status === 401) {
+        throw Object.assign(new Error(`That key was rejected (${reason}). Paste a valid OpenAI API key.`), { badKey: true });
+      }
+      if (res.status === 403) {
+        throw new Error(`OpenAI refused the request (${reason}). Image generation may require a verified organization — check platform.openai.com/settings.`);
+      }
+      if (res.status === 429) {
+        throw new Error("OpenAI rate/credit limit hit — check your usage and billing on platform.openai.com, then try again.");
+      }
+      throw new Error(`OpenAI returned an error: ${reason}`);
+    }
+    const data = await res.json();
+    const b64 = data?.data?.[0]?.b64_json;
+    if (!b64) throw new Error("OpenAI returned no image — please try again.");
+    return `data:image/png;base64,${b64}`;
+  };
+
   const AI_PROVIDERS = {
     gemini: {
       label: "Google Gemini",
@@ -780,7 +821,19 @@
       placeholder: "Paste your Gemini API key",
       link: "https://aistudio.google.com/apikey",
       linkText: "aistudio.google.com/apikey",
+      note: "Free tier available — a good place to start.",
+      step1: "Get a free key at ",
       generate: generateGemini,
+    },
+    openai: {
+      label: "OpenAI",
+      keyName: "tpc-openai-key",
+      placeholder: "Paste your OpenAI API key (sk-…)",
+      link: "https://platform.openai.com/api-keys",
+      linkText: "platform.openai.com/api-keys",
+      note: "The same image model ChatGPT uses. Paid API — typically a few cents per image, billed to your OpenAI account.",
+      step1: "Create an API key at ",
+      generate: generateOpenAi,
     },
     hf: {
       label: "Hugging Face",
@@ -788,6 +841,8 @@
       placeholder: "Paste your Hugging Face token (hf_…)",
       link: "https://huggingface.co/settings/tokens",
       linkText: "huggingface.co/settings/tokens",
+      note: "Free monthly credits included. The default FLUX model needs a one-time license acceptance on hf.co.",
+      step1: "Get a free token (with “Inference Providers” permission) at ",
       generate: generateHf,
     },
   };
@@ -806,19 +861,23 @@
     const link = $("#aiKeyLink");
     link.href = p.link;
     link.textContent = p.linkText;
-    $("#aiStep1").firstChild.textContent = aiProvider === "hf"
-      ? "Get a free token (with “Inference Providers” permission) at "
-      : "Get a free key at ";
+    $("#aiStep1").firstChild.textContent = p.step1;
+    $("#providerNote").textContent = p.note;
     $("#hfModelRow").hidden = aiProvider !== "hf";
     $("#hfModelSelect").value = getHfModel();
     $("#geminiModelRow").hidden = aiProvider !== "gemini";
     $("#geminiModelSelect").value = getGeminiModel();
+    $("#openaiModelRow").hidden = aiProvider !== "openai";
+    $("#openaiModelSelect").value = getOpenAiModel();
   };
   $("#hfModelSelect").addEventListener("change", (e) => {
     try { localStorage.setItem("tpc-hf-model", e.target.value); } catch { /* ignore */ }
   });
   $("#geminiModelSelect").addEventListener("change", (e) => {
     try { localStorage.setItem("tpc-gemini-model", e.target.value); } catch { /* ignore */ }
+  });
+  $("#openaiModelSelect").addEventListener("change", (e) => {
+    try { localStorage.setItem("tpc-openai-model", e.target.value); } catch { /* ignore */ }
   });
   $$('input[name="aiProvider"]').forEach((r) =>
     r.addEventListener("change", () => {

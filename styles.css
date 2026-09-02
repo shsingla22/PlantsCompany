@@ -569,6 +569,10 @@ input[type="range"]::-moz-range-thumb {
 }
 .ai-panel__providers label { display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer; }
 .ai-panel__providers input { accent-color: var(--green-500); width: 16px; height: 16px; cursor: pointer; }
+.ai-panel__provider-note {
+  font-size: 0.88rem; color: var(--ink-soft); margin: -0.2rem 0 0.8rem;
+  padding-left: 0.2rem; font-style: italic;
+}
 .ai-panel__model { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.8rem; font-size: 0.92rem; font-weight: 600; }
 .ai-panel__model select {
   flex: 1; min-width: 200px; font-family: inherit; font-size: 0.92rem;

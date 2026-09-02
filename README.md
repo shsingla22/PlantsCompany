@@ -20,8 +20,10 @@ home plant care systems (watering, light, and soil sensing).
   you pick a plant density (a few / balanced / jungle), and **Beautify**
   repaints the space photorealistically via Google Gemini (Nano Banana 2 /
   Gemini 3.1 Flash Image by default, Nano Banana Pro selectable, automatic
-  fallback to the legacy model) or Hugging Face (FLUX.1 Kontext dev by
-  default, Qwen Image Edit selectable) — bring your own free key, entered
+  fallback to the legacy model), OpenAI (GPT Image 1 — the ChatGPT image
+  model — with high input fidelity; paid API) or Hugging Face (FLUX.1
+  Kontext dev by default, Qwen Image Edit selectable) — bring your own key,
+  entered
   in the browser and stored locally. The AI prompt is a concise stylist
   brief: plant density, a randomized species palette for variety, mixed
   foliage shapes and colours, varied room-matched pots, and placement
